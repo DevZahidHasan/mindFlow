@@ -40,6 +40,7 @@ Supabase / PostgreSQL
 * **Animations & Motion**: Leverage physics-based motion (spring constants, inertia, velocity-based drag). Custom cursor and animations must degrade gracefully when `prefers-reduced-motion: reduce` is detected or on low-power devices.
 * **Performance & WebGL Boundaries**: WebGL/R3F must be restricted to the visual canvas (e.g. Universe Mode) and dynamically loaded with SSR disabled. Text notes, forms, sidebars, settings, and command palette must be rendered using standard DOM/CSS.
 * **Error Flow**: Raw database/auth errors must be caught at the Domain Service layer and normalized into the standard `AppError` payload format before returning to the UI to prevent database details leakage.
+* **UI Primitives Isolation**: Core UI primitives (e.g. Button, Input, Dialog, Sheet, Tabs, Tooltip) must remain framework-agnostic. Keep validation engines (Zod), form bindings (React Hook Form), or Server Actions decoupled from component definitions.
 
 ## 5. Agent Development Workflow
 All agents must follow this sequential loop:

@@ -1,26 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colors - Dark Theme (Default) */
+  --background: #050505;
+  --foreground: #EBEBEB;
+  --surface: #0F0F0F;
+  --surface-elevated: #1A1A1A;
+  --surface-subtle: #0B0B0B;
+  --border: #1F1F1F;
+  --muted: #71717A;
+  --accent: #D4AF37; /* Muted Gold */
+  --accent-foreground: #000000;
+  
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+
+  /* Typography Scales (Fluid clamp values) */
+  --font-display-2xl: clamp(3.00rem, 2.50rem + 2.50vw, 5.00rem);
+  --font-display-xl:  clamp(2.25rem, 1.80rem + 2.00vw, 3.75rem);
+  --font-h1:          clamp(1.75rem, 1.50rem + 1.25vw, 2.50rem);
+  --font-h2:          clamp(1.50rem, 1.30rem + 1.00vw, 2.00rem);
+  --font-h3:          clamp(1.25rem, 1.15rem + 0.50vw, 1.50rem);
+  --font-body:        clamp(0.95rem, 0.90rem + 0.25vw, 1.05rem);
+  --font-metadata:    clamp(0.75rem, 0.75rem, 0.80rem);
+
+  /* Spacing Base */
+  --grid-gap: 24px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Colors - Light Theme Alternative */
+    --background: #FAFAFA;
+    --foreground: #121212;
+    --surface: #FFFFFF;
+    --surface-elevated: #F4F4F5;
+    --surface-subtle: #FDFDFD;
+    --border: #E4E4E7;
+    --muted: #71717A;
+    --accent: #C5A028;
+    --accent-foreground: #FFFFFF;
   }
 }
 
-body {
-  background: var(--background);
+@theme inline {
+  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  
+  --spacing-grid-gap: var(--grid-gap);
+}
+
+/* Global Reset & Base Elements */
+html {
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Unified Accessible Keyboard Focus State */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* Hide native outlines on click for pointer users but preserve focus */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Hide custom cursor helper styles for touch viewports or prefers-reduced-motion */
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .custom-cursor-halo {
+    display: none !important;
+  }
+  html, body, button, a {
+    cursor: auto !important;
+  }
+}
+
+/* Reduced Motion globally */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
