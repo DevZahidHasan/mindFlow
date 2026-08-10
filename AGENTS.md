@@ -13,31 +13,33 @@ Welcome! This is the persistent instruction manual and memory system for all AI 
 * **State Management**: Zero external state libraries. Use Server Components, Server Actions, route handlers, state/reducer hook primitives, and React Context sparingly. Do NOT install Zustand, TanStack Query, Redux, etc.
 
 ## 3. Target Layered Architecture
-Ensure clear separation of concerns:
+Ensure clear separation of concerns and follow strict import directions:
 ```
 UI (Components / Pages)
  ↓
-Server Components / Client Components (Fetch wrappers, state handlers)
+Server Components / Client Components (Layout, event triggers, path state)
  ↓
-Server Actions / Route Handlers (Request boundaries, auth check, validation)
+Server Actions / Route Handlers (Zod schema validations, authentication boundaries)
  ↓
-Domain Services (Orchestration, business logic, workflows)
+Domain Services (Core business rules, service orchestration, error mapping)
  ↓
-Repositories (Database access, raw queries, Supabase clients)
+Repositories (Raw queries, SQL schema joins, direct Supabase adapters)
  ↓
 Supabase / PostgreSQL
 ```
-* **Constraint**: Do not put complex business logic directly in React components. Do not write raw queries in UI components.
+* **Dependency Constraints**: UI components must never import Repositories or run direct DB operations. Server Actions and Route Handlers must validate inputs and verify authority before invoking Services. Services must map database entities to domain models and catch database exceptions to normalize them.
+* **Feature Directories**: Features are encapsulated in `src/features/[featureName]/` containing component, schema, action, service, repository, and type subfolders as required.
 
 ## 4. Non-Negotiable Rules
 * **TypeScript Strict Mode**: `strict: true` must remain enabled.
 * **Zero any Policy**: Never use `any` or `as any`. Address typing challenges with interfaces, generics, discriminated unions, or type guards.
-* **State Discipline**: React Context must not become a global replacement for state.
-* **Security First**: Validate all inputs at request boundaries. Never trust client-provided user IDs. Secure all variables.
-* **Mobile-First Layouts**: Design mobile first, then scale to desktop. Minimum touch targets must be `44px × 44px`.
-* **Accessibility (a11y)**: Use semantic HTML, keyboard focus management, and screen-reader support. Never compromise accessibility for visual effects.
-* **Animations**: Leverage physics-based motion (spring, velocity, drag, shared-element, scroll-linked). Animations must serve a UX purpose, not just looking impressive.
-* **Performance**: Lazy load heavy libraries (like 3D/WebGL). Keep bundle size small. Optimize frame rates and GPU usage.
+* **State Discipline**: React Context must not store high-frequency mutating business data. Use URL query strings (`?tab=...`) to represent view states and standard React hooks for component UI status.
+* **Security & Auth First**: Never trust client-provided workspace/user IDs. Validate workspace membership inside the Request boundary before fetching. Secure variables.
+* **Mobile-First Layouts**: Design mobile first, then scale to desktop. Minimum touch targets must be `44px × 44px`. Use gesture-friendly sheets and drawers on mobile viewports.
+* **Accessibility (a11y)**: Use semantic HTML, keyboard focus management (visible focus rings required), and screen-reader support. The visual 3D Knowledge Universe must provide a screen-reader-accessible hierarchical textual view fallback.
+* **Animations & Motion**: Leverage physics-based motion (spring constants, inertia, velocity-based drag). Custom cursor and animations must degrade gracefully when `prefers-reduced-motion: reduce` is detected or on low-power devices.
+* **Performance & WebGL Boundaries**: WebGL/R3F must be restricted to the visual canvas (e.g. Universe Mode) and dynamically loaded with SSR disabled. Text notes, forms, sidebars, settings, and command palette must be rendered using standard DOM/CSS.
+* **Error Flow**: Raw database/auth errors must be caught at the Domain Service layer and normalized into the standard `AppError` payload format before returning to the UI to prevent database details leakage.
 
 ## 5. Agent Development Workflow
 All agents must follow this sequential loop:
