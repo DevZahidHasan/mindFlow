@@ -395,7 +395,7 @@ Make capturing knowledge extremely fast and pleasant.
 
 # Phase 7 — Documents & Knowledge Ingestion
 
-**Status:** PLANNED
+**Status:** COMPLETE
 
 ### Scope
 

@@ -2,7 +2,7 @@
 
 import { AuthService } from "@/features/auth/services/auth-service";
 import { KnowledgeService } from "../services/knowledge.service";
-import { AppError } from "@/lib/errors";
+import { AppError, normalizeError } from "@/lib/errors";
 import { CreateNodeInput, UpdateNodeInput } from "../schemas/node.schema";
 import { CreateEdgeInput } from "../schemas/edge.schema";
 import { revalidatePath } from "next/cache";
@@ -115,5 +115,35 @@ export async function deleteEdgeAction(edgeId: string, workspaceId: string): Pro
     return { success: true };
   } catch (err) {
     return { success: false, error: err as AppError };
+  }
+}
+
+/**
+ * Searches knowledge nodes in a workspace.
+ */
+export async function searchNodesAction(query: string, workspaceId: string): Promise<KnowledgeActionState> {
+  const user = await AuthService.getUser();
+  if (!user) {
+    return {
+      success: false,
+      error: { message: "Authentication required", code: "AUTH_REQUIRED", status: 401 },
+    };
+  }
+
+  try {
+    // For now, simple ILIKE search. Can be replaced with Vector search in Phase 8.
+    const supabase = await (await import("@/lib/supabase/server")).createClient();
+    const { data, error } = await supabase
+      .from('knowledge_nodes')
+      .select('id, title, type, metadata, document_metadata:knowledge_document_metadata(*)')
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'active')
+      .ilike('title', `%${query}%`)
+      .limit(10);
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: normalizeError(err) as AppError };
   }
 }

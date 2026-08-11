@@ -33,6 +33,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Nav List */}
       <nav className="flex-1 flex flex-col gap-1.5 mt-4">
+        <div className="flex flex-col gap-2 mb-6">
+          <Link
+            href={`/w/${workspaceId}/import`}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20 transition-all duration-150 shadow-sm"
+          >
+            <span className="text-xs">＋</span>
+            Import Knowledge
+          </Link>
+          <Link
+            href={`/w/${workspaceId}/notes/new`}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-surface text-foreground/80 hover:bg-surface-hover border border-border/50 hover:border-border transition-all duration-150 shadow-sm"
+          >
+            <span className="text-xs font-mono">✎</span>
+            Write Manual Note
+          </Link>
+        </div>
+        
         <span className="text-[10px] font-mono text-muted uppercase tracking-widest mb-2 px-1">
           Views
         </span>

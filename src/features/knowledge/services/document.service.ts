@@ -70,6 +70,7 @@ export class DocumentService {
         title,
         content,
         type: "note",
+        metadata: {},
       }, userId);
 
       // Create Document Metadata

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useTransition } from "react";
 import { useSpring, SPRING_PRESETS } from "@/lib/hooks/use-spring";
 import { useRouter } from "next/navigation";
+import { searchNodesAction } from "../../actions/knowledge-actions";
 
 interface SearchDialogProps {
   open: boolean;
@@ -12,39 +13,62 @@ interface SearchDialogProps {
 
 export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, workspaceId }) => {
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<{ id: string, title: string, type: string }[]>([]);
+  const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Cinematic transitions for opening the full-screen spatial mode
-  const openProgress = useSpring(open ? 1 : 0, SPRING_PRESETS.cinematic);
+  // Snappier transitions for opening the full-screen spatial mode
+  const openProgress = useSpring(open ? 1 : 0, SPRING_PRESETS.ui);
   const searchFocus = useSpring(query.length > 0 ? 1 : 0, SPRING_PRESETS.editorial);
 
   useEffect(() => {
     if (open) {
-      // Focus input with a slight delay so it doesn't conflict with transition
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => inputRef.current?.focus(), 50);
     } else {
-      setTimeout(() => setQuery(""), 500); // clear after close animation
+      setTimeout(() => {
+        setQuery("");
+        setResults([]);
+      }, 250); 
     }
   }, [open]);
 
-  // Prevent rendering if completely closed to save performance
+  useEffect(() => {
+    if (query.trim().length === 0) {
+      setResults([
+        { id: "new", title: "Create new knowledge", type: "action" }
+      ]);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      startTransition(async () => {
+        const res = await searchNodesAction(query, workspaceId);
+        if (res?.success && res.data) {
+          const dbResults = res.data.map((n: any) => ({
+            id: n.id,
+            title: n.title,
+            type: "node",
+          }));
+          setResults(dbResults.length > 0 ? dbResults : [
+             { id: "new", title: `Create "${query}"`, type: "action" }
+          ]);
+        }
+      });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, workspaceId]);
+
   if (!open && openProgress < 0.01) return null;
 
   const bgOpacity = openProgress * 0.98;
   const contentScale = 0.9 + openProgress * 0.1;
 
-  // Mock results for now
-  const results = [
-    { id: "new", title: "Create new note", type: "action" },
-    { id: "1", title: "Artificial Intelligence", type: "node" },
-    { id: "2", title: "Cognitive Science", type: "node" },
-  ].filter(r => r.title.toLowerCase().includes(query.toLowerCase()));
-
   const handleSelect = (id: string, type: string) => {
     onOpenChange(false);
     if (type === "action" && id === "new") {
-      router.push(`/w/${workspaceId}/notes/new`);
+      router.push(`/w/${workspaceId}/import`);
     } else {
       router.push(`/w/${workspaceId}/notes/${id}`);
     }
@@ -69,7 +93,7 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
       />
 
       <div 
-        className="w-full max-w-4xl px-8 flex flex-col items-center justify-center relative z-10"
+        className="w-full max-w-5xl px-8 flex flex-col items-center justify-center relative z-10"
         style={{
           transform: `scale(${contentScale}) translateY(${(1 - openProgress) * 40}px)`,
           opacity: openProgress,
@@ -95,36 +119,36 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
 
         {/* Spatial Results */}
         <div 
-          className="w-full relative mt-16 h-64 flex justify-center perspective-[1000px]"
+          className="w-full relative mt-16 h-80 flex justify-center perspective-[1200px]"
           style={{
             opacity: searchFocus,
             transform: `translateZ(${searchFocus * 50}px)`,
           }}
         >
           {results.map((res, index) => {
-            // Calculate spatial arrangement
+            // Calculate spatial arrangement (continuous interpolation)
             const isDominant = index === 0;
-            const distance = index * 40;
-            const zIndex = 10 - index;
-            const scale = 1 - index * 0.1;
-            const yOffset = index * 60;
+            const distance = index * 60;
+            const zIndex = 20 - index;
+            const scale = 1 - index * 0.05;
+            const yOffset = index * 75;
 
             return (
               <button
                 key={res.id}
                 onClick={() => handleSelect(res.id, res.type)}
-                className="absolute flex items-center justify-between w-full max-w-md px-6 py-4 bg-surface border border-border/50 hover:border-accent transition-all duration-700 ease-out cursor-pointer group"
+                className="absolute flex items-center justify-between w-full max-w-2xl px-8 py-6 bg-surface border border-border/50 hover:border-accent transition-all duration-700 ease-out cursor-pointer group shadow-2xl"
                 style={{
                   transform: `translateY(${yOffset}px) scale(${scale}) translateZ(${-distance}px)`,
                   zIndex,
-                  opacity: 1 - index * 0.2,
+                  opacity: 1 - index * 0.15,
                 }}
               >
-                <span className={`font-sans tracking-wide ${isDominant ? 'text-lg text-foreground' : 'text-sm text-foreground/70'}`}>
+                <span className={`font-sans tracking-wide transition-colors ${isDominant ? 'text-2xl text-foreground' : 'text-xl text-foreground/70 group-hover:text-foreground'}`}>
                   {res.title}
                 </span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted group-hover:text-accent">
-                  {res.type === 'action' ? 'Execute' : 'Open'}
+                <span className="text-xs font-mono uppercase tracking-widest text-muted group-hover:text-accent transition-colors">
+                  {res.type === 'action' ? 'Create' : 'Open'}
                 </span>
               </button>
             );

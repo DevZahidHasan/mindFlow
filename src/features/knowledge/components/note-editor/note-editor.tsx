@@ -139,24 +139,47 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ workspaceId, initialNote
           <span>NOTE {nodeId ? nodeId.slice(0, 4) : "NEW"}</span>
           
           {/* Subtle Autosave Indicator */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-muted/50">/</span>
-            <span className="w-16 transition-opacity">{saveState}</span>
-            <div className="relative w-3 h-3 flex items-center justify-center">
+            <span className="w-16 transition-opacity text-right">{saveState}</span>
+            <div className="relative w-4 h-4 flex items-center justify-center">
+              {/* Central Core */}
               <div 
-                className="w-1 h-1 rounded-full bg-foreground transition-all duration-700"
+                className="w-1.5 h-1.5 rounded-full transition-all duration-[1500ms] ease-out z-10"
                 style={{
-                  opacity: saveState === "STORED" ? 0.8 : 0.2,
+                  backgroundColor: saveState === "STORED" ? 'var(--color-accent)' : 'var(--color-foreground)',
+                  opacity: saveState === "STORED" ? 0.8 : saveState === "DRAFT" ? 0.3 : 0.6,
+                  transform: `scale(${saveState === "SAVING" ? 1.2 : 1})`,
                 }}
               />
+              
+              {/* Outer Unstable Orbit (Draft/Editing) */}
               <div 
-                className="absolute inset-0 rounded-full border border-foreground/30 transition-transform"
+                className="absolute inset-0 rounded-full border border-dashed border-foreground/20 transition-all duration-1000"
+                style={{
+                  opacity: (saveState === "DRAFT" || saveState === "EDITING") ? 1 : 0,
+                  transform: `scale(${saveState === "EDITING" ? 1.1 : 1}) rotate(${orbitSpeed * 45}deg)`,
+                  transition: 'transform 2s linear infinite, opacity 1s',
+                }}
+              />
+
+              {/* Contracting Orbit (Saving) */}
+              <div 
+                className="absolute inset-[-4px] rounded-full border border-foreground/40 transition-all duration-700"
                 style={{
                   opacity: saveState === "SAVING" ? 1 : 0,
-                  transform: `rotate(${orbitSpeed * 360}deg)`,
-                  transition: isSaving ? 'transform 1s linear infinite' : 'opacity 0.5s',
+                  transform: `scale(${saveState === "SAVING" ? 0.8 : 1.2}) rotate(${orbitSpeed * 360}deg)`,
+                  transition: saveState === "SAVING" ? 'transform 1s linear infinite, opacity 0.5s' : 'opacity 0.5s',
                 }}
               />
+              
+              {/* Orbital Fragments (Saving) */}
+              {saveState === "SAVING" && (
+                <>
+                  <div className="absolute top-0 w-1 h-1 rounded-full bg-accent/60 animate-ping" style={{ animationDuration: '1s' }} />
+                  <div className="absolute bottom-0 right-0 w-0.5 h-0.5 rounded-full bg-accent/80 animate-ping" style={{ animationDuration: '0.8s', animationDelay: '0.2s' }} />
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -3,6 +3,17 @@ import { z } from "zod";
 export const NodeStatusSchema = z.enum(["active", "archived"]);
 export const NodeTypeSchema = z.enum(["note"]);
 
+export const DocumentSourceTypeSchema = z.enum(["manual", "file_upload", "web_clip"]);
+export const DocumentProcessingStatusSchema = z.enum(["draft", "processing", "ready", "failed"]);
+
+export const DocumentMetadataSchema = z.object({
+  source_type: DocumentSourceTypeSchema.default("manual"),
+  processing_status: DocumentProcessingStatusSchema.default("draft"),
+  mime_type: z.string().nullable().optional(),
+  word_count: z.number().int().min(0).default(0),
+  reading_time: z.number().int().min(0).default(0),
+});
+
 export const KnowledgeNodeSchema = z.object({
   id: z.string().uuid(),
   workspace_id: z.string().uuid(),
@@ -15,17 +26,7 @@ export const KnowledgeNodeSchema = z.object({
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
   archived_at: z.string().datetime().nullable().optional(),
-});
-
-export const DocumentSourceTypeSchema = z.enum(["manual", "file_upload", "web_clip"]);
-export const DocumentProcessingStatusSchema = z.enum(["draft", "processing", "ready", "failed"]);
-
-export const DocumentMetadataSchema = z.object({
-  source_type: DocumentSourceTypeSchema.default("manual"),
-  processing_status: DocumentProcessingStatusSchema.default("draft"),
-  mime_type: z.string().nullable().optional(),
-  word_count: z.number().int().min(0).default(0),
-  reading_time: z.number().int().min(0).default(0),
+  document_metadata: DocumentMetadataSchema.optional(),
 });
 
 export const CreateNodeInputSchema = z.object({

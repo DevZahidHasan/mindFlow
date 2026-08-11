@@ -46,7 +46,7 @@ export const WorkspaceSettingsForm: React.FC<WorkspaceSettingsFormProps> = ({
     startTransition(async () => {
       const formData = new FormData();
       formData.append("name", data.name);
-      const res = await updateWorkspaceNameAction(workspaceId, null, formData);
+      const res = await updateWorkspaceNameAction(workspaceId, formData);
       if (res && !res.success) {
         setError(res.error?.message || "Failed to update workspace name");
       } else {

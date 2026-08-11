@@ -18,11 +18,11 @@ export class DocumentRepository {
       });
 
     if (error) {
+      console.error(error);
       throw new AppErrorClass(
         "Database Error: Could not save document metadata.",
         "DB_ERROR",
-        500,
-        error
+        500
       );
     }
   }
@@ -36,11 +36,11 @@ export class DocumentRepository {
       .eq("node_id", nodeId);
 
     if (error) {
+      console.error(error);
       throw new AppErrorClass(
         "Database Error: Could not update document status.",
         "DB_ERROR",
-        500,
-        error
+        500
       );
     }
   }

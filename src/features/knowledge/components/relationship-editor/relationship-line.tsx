@@ -28,17 +28,17 @@ export const RelationshipLine: React.FC<RelationshipLineProps> = ({ sourceId, on
 
   useEffect(() => {
     if (!isDragging) {
-      setTargetPos({ x: 0, y: 0 });
+      setTargetPos((prev) => (prev.x === 0 && prev.y === 0 ? prev : { x: 0, y: 0 }));
       return;
     }
 
     const handlePointerMove = (e: PointerEvent) => {
       // In a real implementation, this would be relative to the source node's center
       // For now we calculate raw delta from initial click (simulated by centering)
-      setTargetPos({
-        x: e.movementX * 2 + targetPos.x, // simplistic relative accumulation
-        y: e.movementY * 2 + targetPos.y,
-      });
+      setTargetPos((prev) => ({
+        x: e.movementX * 2 + prev.x, // simplistic relative accumulation
+        y: e.movementY * 2 + prev.y,
+      }));
     };
 
     const handlePointerUp = () => {
@@ -54,7 +54,7 @@ export const RelationshipLine: React.FC<RelationshipLineProps> = ({ sourceId, on
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [isDragging, targetPos]);
+  }, [isDragging]);
 
   return (
     <div className="absolute top-1/2 left-0 w-8 h-8 -translate-y-1/2 flex items-center justify-center z-50">
