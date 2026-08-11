@@ -20,7 +20,6 @@ const createSchema = z.object({
  * Server Action creating a workspace atomically.
  */
 export async function createWorkspaceAction(
-  _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const name = formData.get("name") as string;
@@ -54,10 +53,14 @@ export async function createWorkspaceAction(
     const workspaceId = await WorkspaceService.createWorkspace(name, user.id);
     revalidatePath("/w", "layout");
     return { success: true, workspaceId };
-  } catch (err) {
+  } catch (err: any) {
     return {
       success: false,
-      error: err as AppError,
+      error: {
+        message: err.message || "An unknown error occurred",
+        code: err.code || "UNKNOWN_ERROR",
+        status: err.status || 500,
+      },
     };
   }
 }
@@ -67,7 +70,6 @@ export async function createWorkspaceAction(
  */
 export async function updateWorkspaceNameAction(
   workspaceId: string,
-  _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const name = formData.get("name") as string;

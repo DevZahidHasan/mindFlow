@@ -44,6 +44,11 @@ export function normalizeError(err: unknown): AppError {
     };
   }
 
+  // If it's already a normalized AppError POJO (double-normalization protection)
+  if (err && typeof err === "object" && "message" in err && "code" in err) {
+    return err as AppError;
+  }
+
   return {
     message: "An unknown error occurred",
     code: "UNKNOWN_ERROR",

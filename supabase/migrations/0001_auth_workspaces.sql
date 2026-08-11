@@ -82,10 +82,16 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
  * Runs under SECURITY INVOKER to respect active session privileges.
  */
 CREATE OR REPLACE FUNCTION public.create_workspace_with_owner(workspace_name text)
-RETURNS uuid SECURITY INVOKER AS $$
+RETURNS uuid SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   new_workspace_id uuid;
+  current_user_id uuid;
 BEGIN
+  current_user_id := auth.uid();
+  IF current_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
   -- Insert the workspace
   INSERT INTO public.workspaces (name) 
   VALUES (workspace_name) 
@@ -93,7 +99,7 @@ BEGIN
 
   -- Create the owner membership row
   INSERT INTO public.workspace_members (workspace_id, user_id, role)
-  VALUES (new_workspace_id, auth.uid(), 'owner');
+  VALUES (new_workspace_id, current_user_id, 'owner');
 
   RETURN new_workspace_id;
 END;
