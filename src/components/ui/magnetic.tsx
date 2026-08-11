@@ -14,9 +14,9 @@ export interface MagneticProps {
 export const Magnetic: React.FC<MagneticProps> = ({
   children,
   radius = 24,
-  maxOffset = 8,
-  tension = 150,
-  friction = 18,
+  maxOffset = 6,      // Restricted subtle displacement limit (4-8px)
+  tension = 80,       // Matches heavy physics
+  friction = 32,
 }) => {
   const [target, setTarget] = React.useState({ x: 0, y: 0 });
   const containerRef = React.useRef<HTMLDivElement>(null);

@@ -17,7 +17,7 @@ export const Hero: React.FC = () => {
     <section className="w-full flex flex-col min-h-screen justify-between relative overflow-hidden select-none">
       {/* Navigation bar */}
       <nav
-        className={`w-full flex justify-between items-center py-6 border-b border-border/40 select-none transition-all duration-700 ${
+        className={`w-full flex justify-between items-center py-6 border-b border-border/40 select-none transition-all duration-[1000ms] cubic-bezier(0.16, 1, 0.3, 1) ${
           mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
         }`}
       >
@@ -53,7 +53,7 @@ export const Hero: React.FC = () => {
         {/* Left text column */}
         <div className="lg:col-span-6 flex flex-col gap-6 text-left">
           <span
-            className={`text-xs font-mono text-accent uppercase tracking-widest block transition-all duration-700 delay-300 ${
+            className={`text-xs font-mono text-accent uppercase tracking-widest block transition-all duration-[1000ms] cubic-bezier(0.16, 1, 0.3, 1) delay-300 ${
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
             }`}
           >
@@ -66,7 +66,7 @@ export const Hero: React.FC = () => {
           </h1>
 
           <p
-            className={`text-muted text-[length:var(--font-body)] max-w-lg leading-relaxed font-sans transition-all duration-700 delay-800 ${
+            className={`text-muted text-[length:var(--font-body)] max-w-lg leading-relaxed font-sans transition-all duration-[1000ms] cubic-bezier(0.16, 1, 0.3, 1) delay-800 ${
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -75,7 +75,7 @@ export const Hero: React.FC = () => {
           </p>
 
           <div
-            className={`flex gap-4 mt-4 transition-all duration-700 delay-[900ms] ${
+            className={`flex gap-4 mt-4 transition-all duration-[1000ms] cubic-bezier(0.16, 1, 0.3, 1) delay-[900ms] ${
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -89,7 +89,7 @@ export const Hero: React.FC = () => {
 
         {/* Right graph column */}
         <div
-          className={`lg:col-span-6 w-full transition-all duration-1000 delay-[1100ms] ${
+          className={`lg:col-span-6 w-full transition-all duration-[1500ms] cubic-bezier(0.16, 1, 0.3, 1) delay-[1100ms] ${
             mounted ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >
@@ -99,7 +99,7 @@ export const Hero: React.FC = () => {
 
       {/* Scroll indicator footer */}
       <div
-        className={`w-full flex justify-between items-center py-6 text-[10px] font-mono text-muted select-none transition-all duration-700 delay-[1300ms] ${
+        className={`w-full flex justify-between items-center py-6 text-[10px] font-mono text-muted select-none transition-all duration-[1000ms] cubic-bezier(0.16, 1, 0.3, 1) delay-[1300ms] ${
           mounted ? "opacity-100" : "opacity-0"
         }`}
       >

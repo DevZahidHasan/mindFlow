@@ -1,16 +1,22 @@
 "use client";
 
 import * as React from "react";
+import { useSpring } from "@/lib/hooks/use-spring";
 
 /**
  * An enhancement-only pointer halo wrapper.
- * Honors prefers-reduced-motion and touch device modes by shutting down,
- * and never blocks clicks or focus indicators.
+ * Trailing coordinates are driven smoothly in JS by our custom spring solver.
+ * CSS transitions are limited strictly to size, border colors, and opacities,
+ * completely preventing interpolation offsets and render lags.
  */
 export const CustomCursor: React.FC = () => {
-  const [position, setPosition] = React.useState({ x: 0, y: 0 });
+  const [target, setTarget] = React.useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = React.useState(false);
   const [state, setState] = React.useState<"default" | "interactive" | "drag" | "text">("default");
+
+  // Trailing inertia driven by our custom heavy spring solver
+  const springX = useSpring(target.x, { tension: 70, friction: 32, mass: 1.2 });
+  const springY = useSpring(target.y, { tension: 70, friction: 32, mass: 1.2 });
 
   React.useEffect(() => {
     // Safety check: Disable cursor enhancement on touch viewports or reduced-motion
@@ -25,30 +31,30 @@ export const CustomCursor: React.FC = () => {
       if (!isVisible) {
         setIsVisible(true);
       }
-      setPosition({ x: e.clientX, y: e.clientY });
+      setTarget({ x: e.clientX, y: e.clientY });
 
-      const target = e.target as HTMLElement | null;
-      if (!target) {
+      const targetEl = e.target as HTMLElement | null;
+      if (!targetEl) {
         return;
       }
 
       // Check context styles of the target hovered element
       const isInteractive =
-        target.closest("button") ||
-        target.closest("a") ||
-        target.closest('[role="button"]') ||
-        window.getComputedStyle(target).cursor === "pointer";
+        targetEl.closest("button") ||
+        targetEl.closest("a") ||
+        targetEl.closest('[role="button"]') ||
+        window.getComputedStyle(targetEl).cursor === "pointer";
 
       const isText =
-        target.closest("input") ||
-        target.closest("textarea") ||
-        target.closest("[contenteditable]") ||
-        window.getComputedStyle(target).cursor === "text";
+        targetEl.closest("input") ||
+        targetEl.closest("textarea") ||
+        targetEl.closest("[contenteditable]") ||
+        window.getComputedStyle(targetEl).cursor === "text";
 
       const isDrag =
-        target.closest('[draggable="true"]') ||
-        window.getComputedStyle(target).cursor === "grab" ||
-        window.getComputedStyle(target).cursor === "grabbing";
+        targetEl.closest('[draggable="true"]') ||
+        window.getComputedStyle(targetEl).cursor === "grab" ||
+        window.getComputedStyle(targetEl).cursor === "grabbing";
 
       if (isInteractive) {
         setState("interactive");
@@ -79,18 +85,18 @@ export const CustomCursor: React.FC = () => {
   }
 
   const stateStyles = {
-    default: "w-6 h-6 border-border",
-    interactive: "w-10 h-10 border-accent bg-accent/5 scale-110",
-    drag: "w-8 h-8 border-warning bg-warning/5 cursor-grab",
-    text: "opacity-0 scale-0", // Hide cursor halo during typing to avoid visual clutter
+    default: "w-6 h-6 border-border opacity-100",
+    interactive: "w-10 h-10 border-accent bg-accent/5 opacity-100",
+    drag: "w-8 h-8 border-warning bg-warning/5 opacity-100",
+    text: "w-0 h-0 opacity-0 border-transparent", // Hide cursor halo during typing
   };
 
   return (
     <div
       style={{
-        transform: `translate3d(${position.x}px, ${position.y}px, 0) translate(-50%, -50%)`,
+        transform: `translate3d(${springX}px, ${springY}px, 0) translate(-50%, -50%)`,
       }}
-      className={`fixed top-0 left-0 z-[9999] pointer-events-none rounded-full border border-solid transition-all duration-200 ease-out custom-cursor-halo hidden lg:block ${stateStyles[state]}`}
+      className={`fixed top-0 left-0 z-[9999] pointer-events-none rounded-full border border-solid transition-[width,height,background-color,border-color,opacity] duration-500 cubic-bezier(0.16, 1, 0.3, 1) custom-cursor-halo hidden lg:block ${stateStyles[state]}`}
     />
   );
 };

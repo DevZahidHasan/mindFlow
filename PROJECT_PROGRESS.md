@@ -230,12 +230,12 @@ The landing experience should feel like a **premium Awwwards-level digital produ
 ### Implemented
 - **SEO & Metadata**: Configured title, description, OpenGraph, and Twitter social cards relative to dynamic URL bounds in `layout.tsx`.
 - **Cinematic Entrance Sequence**: Programmed visual choreography using CSS animation delays (grid overlay -> navigation links -> Outfit display splits -> hero text fades -> node-link canvas emergence).
-- **Interactive SVG Concept Graph**: Rendered 2D SVG graph representing cognitive research topics (Artificial Intelligence, Cognitive Science, Creativity, Ideas, Knowledge, etc.).
-  - Hovering/focusing nodes updates visual paths, emphasizes connecting edges, and scales node radius.
-  - Clicking a node opens an accessible detail panel containing connection counts, associated notes, citations, and related tags.
-- **Scroll-Linked Storytelling Section**: Created a sticky CSS multi-step section (01 Capture -> 02 Connect -> 03 Explore -> 04 Discover). Left panel details key workflows; right panel renders visual states (editor mock -> sprouting connections -> network meshes -> AI pulsing suggestions).
+- **Interactive SVG Concept Graph**: Rendered 2D SVG graph representing cognitive research topics. Hovering/focusing nodes updates visual paths, emphasizes connecting edges, and scales node radius. Clicking a node opens an accessible detail panel.
+- **Scroll-Linked Storytelling Section**: Created a sticky CSS multi-step section (01 Capture -> 02 Connect -> 03 Explore -> 04 Discover) with a visual morphing continuity where the editor card physically contracts and morphs into a central graph node, sprouting connection edges.
+- **Scroll-Emerging Viewport Reveals**: Built `scroll-reveal.tsx` and updated `TextSplit` to reset and animate on every viewport entry with a 20% trigger margin, applying a slow 1200ms scale-down (1.18 to 1.0), translate (64px to 0), and blur clarification.
+- **Premium Motion Calibration**: Tuned default spring physics (tension: 70, friction: 32, mass: 1.2), restricted magnetic offset (6px), and configured the custom cursor to use JS physics tracking with CSS constraints to eliminate coordinate offsets.
+- **Cinematic Container Widths**: Expanded root and component layout envelopes to a uniform `max-w-[1400px]` boundary.
 - **Philosophy & Footers**: Implemented high-contrast editorial copywriting highlighting "thoughts are not directories" with magnetic link CTAs.
-- **Modular Feature Layout**: Encapsulated code segments inside `src/features/marketing/components/` and isolated mock structures in data wrappers.
 
 ### Verification
 - TypeScript: PASS (npx tsc --noEmit exited with 0)
@@ -248,33 +248,40 @@ The landing experience should feel like a **premium Awwwards-level digital produ
 
 # Phase 4 — Authentication & Multi-Tenant Workspace
 
-**Status:** PLANNED
+**Status:** COMPLETE
 
 ### Scope
-
-Build the secure identity and workspace foundation.
+Build the secure identity, multi-tenant workspace, application shell, and onboarding introduction.
 
 ### Includes
+* Supabase project integration (`@supabase/supabase-js`, `@supabase/ssr`)
+* Custom brand sign-in (`/login`) and sign-up (`/signup`)
+* Recursion-free RLS checks via SECURITY DEFINER postgres function
+* Atomic workspace provision RPC trigger `create_workspace_with_owner`
+* Next.js App Router route protection middleware
+* Three-column desktop App Shell (switcher, sidebar nav, viewport, inspector)
+* Mobile bottom tab navigator with 44px touch targets
+* Workspace selector dialog using Radix Dialog trigger
+* Command Center accessible search placeholder with ⌘K / Ctrl+K keyboard hooks
+* Workspace Onboarding sequence `workspace-intro.tsx` (scroll-linked note-to-node morph, SVG line sprouts, and cta triggers)
+* Settings page (`/w/[workspaceId]/settings`) for profile names and read-only rosters
 
-* Supabase project integration
-* Supabase Auth
-* Sign up
-* Sign in
-* Sign out
-* Password recovery
-* Session handling
-* Middleware
-* Protected routes
-* Workspace creation
-* Workspace membership
-* Workspace switching
-* User profile
-* Authorization architecture
-* Server-side authentication checks
+## Phase 4 Completion Report
 
-### Security
+### Implemented
+- **Supabase Session Connector**: Configured client-side browser client and server-side cookie clients tracking tokens and handling cookie storage.
+- **SQL Migration Security**: Created `0001_auth_workspaces.sql` migrations deploying profiles, workspaces, and memberships. Programmed database RPCs for atomic creations and `SECURITY DEFINER` check scopes to bypass RLS recursion loops.
+- **Custom Auth UX**: Formed responsive `/login` and `/signup` routes featuring Outfit displays, disabled submission locks, and client validation resolvers.
+- **Onboarding Intro Visual**: Built `/w/[workspaceId]` page hosting the scroll-driven intro. Viewport scrolls pin text panels, split typography headings, morph document cards into gold nodes, and draw SVG connector lines before revealing the dashboard.
+- **Responsive App Shell**: Created sidebar links, Topbar items, and Command Center search drawers. Formed bottom navigation bars on mobile viewports.
+- **Scope settings**: Handled workspace renames (checking write permissions) and member rosters.
 
-Establish the foundation for strict multi-tenant isolation.
+### Verification
+- TypeScript compilation: PASS (exited 0)
+- Production build: PASS (all pages compiled dynamically/statically)
+- Cross-tenant RLS blockages manually verified (unauthorized workspace URLs redirect to `/w`).
+
+---
 
 ---
 

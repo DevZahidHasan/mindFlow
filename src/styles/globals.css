@@ -154,3 +154,16 @@ h1, h2, h3, h4, h5, h6, .font-display {
     transform: translateY(0);
   }
 }
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}

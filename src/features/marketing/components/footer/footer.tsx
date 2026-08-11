@@ -7,7 +7,7 @@ import { Magnetic } from "@/components/ui/magnetic";
 export const Footer: React.FC = () => {
   return (
     <footer className="w-full border-t border-border/40 py-24 select-none">
-      <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-col gap-16">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col gap-16">
         
         {/* Call to Action Section */}
         <div className="flex flex-col items-start gap-6 max-w-2xl">
