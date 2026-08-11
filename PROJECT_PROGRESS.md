@@ -777,9 +777,9 @@ Add a concise summary table near the top of `PROJECT_PROGRESS.md`:
 | 4     | Authentication & Multi-Tenant Workspace                 | COMPLETE |
 | 5     | Database Architecture & Knowledge Core                  | COMPLETE |
 | 6     | Knowledge Capture & Notes                               | COMPLETE |
-| 7     | Documents & Knowledge Ingestion                         | PLANNED  |
-| 8     | Knowledge Universe & Graph Engine                       | PLANNED  |
-| 9     | WebGL / 3D Knowledge Experience                         | PLANNED  |
+| 7     | Documents & Knowledge Ingestion                         | COMPLETE |
+| 8     | Knowledge Universe & Graph Engine                       | COMPLETE |
+| 9     | WebGL / 3D Knowledge Experience                         | COMPLETE |
 | 10    | AI Search & Intelligence Engine                         | PLANNED  |
 | 11    | AI Assistant & Command Center                           | PLANNED  |
 | 12    | Projects, Collections & Timeline                        | PLANNED  |
@@ -799,7 +799,7 @@ At the bottom of the document, maintain:
 
 ### Current Phase
 
-Phase 6 — Knowledge Capture & Notes
+Phase 9 — WebGL / 3D Knowledge Experience
 
 ### Status
 
@@ -807,7 +807,7 @@ COMPLETE
 
 ### Next Phase
 
-Phase 7 — Documents & Knowledge Ingestion
+Phase 10 — AI Search & Intelligence Engine
 
 ### Human Approval Required
 

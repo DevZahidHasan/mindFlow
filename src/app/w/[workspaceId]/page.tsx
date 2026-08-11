@@ -13,6 +13,7 @@ interface WorkspacePageProps {
   }>;
   searchParams: Promise<{
     tab?: string;
+    focus?: string;
   }>;
 }
 
@@ -21,7 +22,7 @@ export default async function WorkspaceDashboardPage({
   searchParams,
 }: WorkspacePageProps) {
   const { workspaceId } = await params;
-  const { tab } = await searchParams;
+  const { tab, focus } = await searchParams;
 
   // 1. Authenticate user session
   const user = await AuthService.getUser();
@@ -56,8 +57,11 @@ export default async function WorkspaceDashboardPage({
 
   const displayName = profile?.display_name || user.email || "User Profile";
 
-  // 5. Fetch knowledge nodes
-  const nodes = await KnowledgeService.getWorkspaceNodes(workspace.id);
+  // 5. Fetch knowledge nodes and edges
+  const [nodes, edges] = await Promise.all([
+    KnowledgeService.getWorkspaceNodes(workspace.id),
+    KnowledgeService.getWorkspaceEdges(workspace.id)
+  ]);
 
   return (
     <WorkspaceDashboard
@@ -67,7 +71,9 @@ export default async function WorkspaceDashboardPage({
       displayName={displayName}
       workspaces={workspacesItems}
       activeTab={tab}
+      focusedNodeId={focus}
       nodes={nodes}
+      edges={edges}
     />
   );
 }

@@ -112,7 +112,8 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
     if (type === "action" && id === "new") {
       router.push(`/w/${workspaceId}/import`);
     } else {
-      router.push(`/w/${workspaceId}/notes/${id}`);
+      // Cinematic: Focus the node in the universe first
+      router.push(`/w/${workspaceId}?tab=universe&focus=${id}`);
     }
   };
 
