@@ -219,7 +219,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ workspaceId, initialNote
         />
       </div>
 
-      {isPersisted && nodeId && <RelatedPanel currentNodeId={nodeId} />}
+      {isPersisted && nodeId && <RelatedPanel currentNodeId={nodeId} workspaceId={workspaceId} content={content} />}
     </div>
   );
 };

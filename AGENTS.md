@@ -42,6 +42,9 @@ Supabase / PostgreSQL
 * **Error Flow**: Raw database/auth errors must be caught at the Domain Service layer and normalized into the standard `AppError` payload format before returning to the UI to prevent database details leakage.
 * **UI Primitives Isolation**: Core UI primitives (e.g. Button, Input, Dialog, Sheet, Tabs, Tooltip) must remain framework-agnostic. Keep validation engines (Zod), form bindings (React Hook Form), or Server Actions decoupled from component definitions.
 * **Database & Domain Strictness**: `knowledge_nodes` is the canonical knowledge entity, and `knowledge_edges` is the canonical relationship entity. All knowledge entities are strict workspace-scoped. Database RLS is mandatory for all access. Repositories are the only direct database layer. AI semantic relationships are NOT created during node creation; node and edge operations remain distinct at the domain level.
+* **Semantic Intelligence**: MINDSPACE uses a Groq-Only RAG Architecture. The application utilizes PostgreSQL-native Full-Text Search (FTS) with GIN indexes on `searchable_content tsvector` within a dedicated `knowledge_chunks` table for retrieval. Embeddings (OpenAI) and vector storage have been completely removed.
+* **AI Tooling**: External AI providers are strictly limited to Groq. Do not install OpenAI, Hugging Face, or vector database libraries.
+
 ## 5. Agent Development Workflow
 All agents must follow this sequential loop:
 1. **Read `AGENTS.md`** to align on rules and stack.

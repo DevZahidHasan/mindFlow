@@ -28,17 +28,17 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
 }) => {
   const [introComplete, setIntroComplete] = React.useState(false);
 
-  // Read saved completion flags to allow skipping on returning entries
+  // Read saved completion flags to allow skipping on returning entries during the same session
   React.useEffect(() => {
     const key = `mindspace_intro_complete_${workspaceId}`;
-    if (localStorage.getItem(key) === "true") {
+    if (sessionStorage.getItem(key) === "true") {
       setIntroComplete(true);
     }
   }, [workspaceId]);
 
   const handleCompleteIntro = () => {
     const key = `mindspace_intro_complete_${workspaceId}`;
-    localStorage.setItem(key, "true");
+    sessionStorage.setItem(key, "true");
     setIntroComplete(true);
   };
 

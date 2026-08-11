@@ -5,16 +5,17 @@ import { AppShell } from "@/features/app-shell/components/app-shell";
 import { KnowledgeService } from "@/features/knowledge/services/knowledge.service";
 import { fetchAppShellData } from "@/features/app-shell/utils/fetch-shell-data";
 
-export async function generateMetadata({ params }: { params: { noteId: string; workspaceId: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ noteId: string; workspaceId: string }> }) {
   try {
-    const note = await KnowledgeService.getNode(params.noteId, params.workspaceId);
+    const { noteId, workspaceId } = await params;
+    const note = await KnowledgeService.getNode(noteId, workspaceId);
     return { title: `${note.title} — MINDSPACE` };
   } catch {
     return { title: "Note Not Found — MINDSPACE" };
   }
 }
 
-export default async function EditNotePage({ params }: { params: { noteId: string; workspaceId: string } }) {
+export default async function EditNotePage({ params }: { params: Promise<{ noteId: string; workspaceId: string }> }) {
   const { workspaceId, noteId } = await params;
   
   let note;
