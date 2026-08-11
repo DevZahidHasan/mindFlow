@@ -85,7 +85,7 @@ export const CustomCursor: React.FC = () => {
   }
 
   const stateStyles = {
-    default: "w-6 h-6 border-border opacity-100",
+    default: "w-6 h-6 border-foreground/50 opacity-100",
     interactive: "w-10 h-10 border-accent bg-accent/5 opacity-100",
     drag: "w-8 h-8 border-warning bg-warning/5 opacity-100",
     text: "w-0 h-0 opacity-0 border-transparent", // Hide cursor halo during typing

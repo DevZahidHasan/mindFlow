@@ -3,8 +3,11 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/ui/magnetic";
+import { useRouter } from "next/navigation";
 
 export const Footer: React.FC = () => {
+  const router = useRouter();
+  
   return (
     <footer className="w-full border-t border-border/40 py-24 select-none">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col gap-16">
@@ -22,7 +25,12 @@ export const Footer: React.FC = () => {
           </p>
           <div className="mt-4">
             <Magnetic radius={36} maxOffset={10}>
-              <Button variant="primary" size="lg" className="font-sans">
+              <Button 
+                variant="primary" 
+                size="lg" 
+                className="font-sans"
+                onClick={() => router.push("/signup")}
+              >
                 Enter your knowledge
               </Button>
             </Magnetic>

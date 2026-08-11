@@ -7,6 +7,13 @@ export interface SpringConfig {
   precision?: number; // Convergence threshold
 }
 
+export const SPRING_PRESETS = {
+  micro: { tension: 120, friction: 22, mass: 1 },        // 250-500ms snappy response
+  ui: { tension: 80, friction: 36, mass: 1.2 },          // 500-900ms standard UI
+  editorial: { tension: 40, friction: 40, mass: 1.5 },   // 900-1600ms graceful settling
+  cinematic: { tension: 20, friction: 45, mass: 2.0 },   // 1400-2600ms slow, deliberate
+} as const;
+
 /**
  * A lightweight, stable delta-time spring physics hook.
  * Resolves scroll-lock delay bugs by allowing continuous loops to run without

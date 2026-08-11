@@ -31,7 +31,6 @@ const signupSchema = z
  * Server Action for authenticating users.
  */
 export async function loginAction(
-  _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const email = formData.get("email") as string;
@@ -65,7 +64,6 @@ export async function loginAction(
  * Server Action for signing up new users.
  */
 export async function signupAction(
-  _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const displayName = formData.get("displayName") as string;
@@ -117,7 +115,6 @@ export async function signoutAction() {
  * Server Action for updating user display name.
  */
 export async function updateProfileAction(
-  _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const displayName = formData.get("displayName") as string;

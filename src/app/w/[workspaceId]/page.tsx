@@ -4,6 +4,7 @@ import { AuthService } from "@/features/auth/services/auth-service";
 import { WorkspaceService } from "@/features/workspaces/services/workspace-service";
 import { WorkspaceRepository } from "@/features/workspaces/repositories/workspace-repository";
 import { WorkspaceDashboard } from "@/features/workspaces/components/workspace-dashboard";
+import { KnowledgeService } from "@/features/knowledge/services/knowledge.service";
 import { createClient } from "@/lib/supabase/server";
 
 interface WorkspacePageProps {
@@ -55,6 +56,9 @@ export default async function WorkspaceDashboardPage({
 
   const displayName = profile?.display_name || user.email || "User Profile";
 
+  // 5. Fetch knowledge nodes
+  const nodes = await KnowledgeService.getWorkspaceNodes(workspace.id);
+
   return (
     <WorkspaceDashboard
       workspaceId={workspace.id}
@@ -63,6 +67,7 @@ export default async function WorkspaceDashboardPage({
       displayName={displayName}
       workspaces={workspacesItems}
       activeTab={tab}
+      nodes={nodes}
     />
   );
 }

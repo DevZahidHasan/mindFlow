@@ -5,13 +5,7 @@ import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { MobileNav } from "./mobile-nav";
 import { WorkspaceItem } from "./workspace-switcher";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { SearchDialog } from "@/features/knowledge/components/knowledge-search/search-dialog";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -33,7 +27,6 @@ export const AppShell: React.FC<AppShellProps> = ({
   activeTab = "universe",
 }) => {
   const [commandOpen, setCommandOpen] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
 
   // Keyboard shortcut listener for ⌘K / Ctrl+K
   React.useEffect(() => {
@@ -104,45 +97,12 @@ export const AppShell: React.FC<AppShellProps> = ({
         onTriggerCommand={handleTriggerCommand}
       />
 
-      {/* Command Center Dialog Overlay */}
-      <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
-        <DialogContent className="max-w-lg w-full p-6 transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-sm font-display text-muted uppercase tracking-widest select-none">
-              Command Center
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-4">
-            <Input
-              type="text"
-              placeholder="Search concepts or run workspace command..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-subtle"
-              autoFocus
-            />
-
-            <div className="flex flex-col gap-1.5 select-none mt-2">
-              <span className="text-[10px] font-mono text-muted uppercase tracking-widest mb-1.5 px-1">
-                Suggested Commands
-              </span>
-              <button className="flex items-center justify-between w-full p-2.5 rounded-lg text-left text-xs font-sans bg-surface hover:bg-surface-elevated text-foreground transition-all cursor-pointer">
-                <span>Create a new markdown note</span>
-                <span className="font-mono text-[9px] text-muted uppercase">N</span>
-              </button>
-              <button className="flex items-center justify-between w-full p-2.5 rounded-lg text-left text-xs font-sans bg-surface hover:bg-surface-elevated text-foreground transition-all cursor-pointer">
-                <span>Navigate to Knowledge Universe</span>
-                <span className="font-mono text-[9px] text-muted uppercase">G then U</span>
-              </button>
-              <button className="flex items-center justify-between w-full p-2.5 rounded-lg text-left text-xs font-sans bg-surface hover:bg-surface-elevated text-foreground transition-all cursor-pointer">
-                <span>Configure workspace settings</span>
-                <span className="font-mono text-[9px] text-muted uppercase">G then S</span>
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Command Center Spatial Overlay */}
+      <SearchDialog 
+        open={commandOpen} 
+        onOpenChange={setCommandOpen}
+        workspaceId={workspaceId}
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AuthService } from "@/features/auth/services/auth-service";
 import { WorkspaceRepository } from "@/features/workspaces/repositories/workspace-repository";
 import { CreateWorkspaceForm } from "@/features/workspaces/components/create-workspace-form";
+import { SpatialAuthBackground } from "@/features/auth/components/spatial-auth-background";
 
 export const metadata = {
   title: "Workspaces — MINDSPACE",
@@ -25,8 +26,8 @@ export default async function WorkspacesRootPage() {
 
   // If no workspaces, render a screen to create one
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center px-6 relative">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center px-6 relative overflow-hidden">
+      <SpatialAuthBackground />
 
       <div className="w-full max-w-sm flex flex-col gap-8 z-10 text-center">
         <header className="flex flex-col gap-2 select-none animate-[fadeInUp_1s_cubic-bezier(0.16,1,0.3,1)]">

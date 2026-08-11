@@ -41,7 +41,7 @@ Supabase / PostgreSQL
 * **Performance & WebGL Boundaries**: WebGL/R3F must be restricted to the visual canvas (e.g. Universe Mode) and dynamically loaded with SSR disabled. Text notes, forms, sidebars, settings, and command palette must be rendered using standard DOM/CSS.
 * **Error Flow**: Raw database/auth errors must be caught at the Domain Service layer and normalized into the standard `AppError` payload format before returning to the UI to prevent database details leakage.
 * **UI Primitives Isolation**: Core UI primitives (e.g. Button, Input, Dialog, Sheet, Tabs, Tooltip) must remain framework-agnostic. Keep validation engines (Zod), form bindings (React Hook Form), or Server Actions decoupled from component definitions.
-
+* **Database & Domain Strictness**: `knowledge_nodes` is the canonical knowledge entity, and `knowledge_edges` is the canonical relationship entity. All knowledge entities are strict workspace-scoped. Database RLS is mandatory for all access. Repositories are the only direct database layer. AI semantic relationships are NOT created during node creation; node and edge operations remain distinct at the domain level.
 ## 5. Agent Development Workflow
 All agents must follow this sequential loop:
 1. **Read `AGENTS.md`** to align on rules and stack.
@@ -58,4 +58,6 @@ All agents must follow this sequential loop:
 9. **Report completion** clearly and stop.
 
 ## 6. Current Project State
+* Phase 6 (Knowledge Capture & Notes) is COMPLETE.
+* Phase 7 (Documents & Knowledge Ingestion) is PLANNED.
 * Refer to [PROJECT_PROGRESS.md](file:///d:/ai_integration/mindFlow/PROJECT_PROGRESS.md) for current phase, roadmap, and recent decisions.

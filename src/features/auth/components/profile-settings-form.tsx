@@ -40,7 +40,7 @@ export const ProfileSettingsForm: React.FC<ProfileSettingsFormProps> = ({
     startTransition(async () => {
       const formData = new FormData();
       formData.append("displayName", data.displayName);
-      const res = await updateProfileAction(null, formData);
+      const res = await updateProfileAction(formData);
       if (res && !res.success) {
         setError(res.error?.message || "Failed to update profile");
       } else {

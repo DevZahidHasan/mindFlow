@@ -5,9 +5,11 @@ import { GraphCanvas } from "../knowledge-preview/graph-canvas";
 import { TextSplit } from "@/components/ui/text-split";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/ui/magnetic";
+import { useRouter } from "next/navigation";
 
 export const Hero: React.FC = () => {
   const [mounted, setMounted] = React.useState(false);
+  const router = useRouter();
 
   React.useEffect(() => {
     setMounted(true);
@@ -42,7 +44,12 @@ export const Hero: React.FC = () => {
         </div>
 
         <Magnetic radius={24} maxOffset={6}>
-          <Button variant="secondary" size="sm" className="font-mono text-xs">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="font-mono text-xs"
+            onClick={() => router.push("/login")}
+          >
             ENTER WORKSPACE
           </Button>
         </Magnetic>
@@ -80,7 +87,11 @@ export const Hero: React.FC = () => {
             }`}
           >
             <Magnetic radius={30} maxOffset={8}>
-              <Button variant="primary" size="lg">
+              <Button 
+                variant="primary" 
+                size="lg"
+                onClick={() => router.push("/signup")}
+              >
                 Give your knowledge a shape
               </Button>
             </Magnetic>

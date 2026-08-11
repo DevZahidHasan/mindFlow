@@ -4,6 +4,8 @@ import * as React from "react";
 import { AppShell } from "@/features/app-shell/components/app-shell";
 import { WorkspaceIntro } from "./workspace-intro";
 import { WorkspaceItem } from "@/features/app-shell/components/workspace-switcher";
+import { KnowledgeNode } from "@/features/knowledge/schemas/node.schema";
+import { NoteList } from "@/features/knowledge/components/note-index/note-list";
 
 interface WorkspaceDashboardProps {
   workspaceId: string;
@@ -12,6 +14,7 @@ interface WorkspaceDashboardProps {
   displayName: string;
   workspaces: WorkspaceItem[];
   activeTab?: string;
+  nodes?: KnowledgeNode[];
 }
 
 export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
@@ -21,6 +24,7 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
   displayName,
   workspaces,
   activeTab = "universe",
+  nodes = [],
 }) => {
   const [introComplete, setIntroComplete] = React.useState(false);
 
@@ -78,17 +82,8 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
       case "universe":
       default:
         return (
-          <div className="flex flex-col gap-4 animate-[fadeInUp_1s_cubic-bezier(0.16,1,0.3,1)] select-none">
-            <span className="text-xs font-mono text-accent uppercase tracking-widest">
-              Active Canvas
-            </span>
-            <h1 className="text-3xl font-display font-medium text-foreground tracking-tight uppercase">
-              Knowledge Universe
-            </h1>
-            <p className="text-sm text-muted max-w-xl leading-relaxed font-sans">
-              Explore your documents as a floating, spatial system of interconnected concept nodes.
-              Click the sidebar tabs to switch focus views.
-            </p>
+          <div className="flex flex-col animate-[fadeInUp_1s_cubic-bezier(0.16,1,0.3,1)] select-none">
+            <NoteList notes={nodes} workspaceId={workspaceId} />
           </div>
         );
     }
