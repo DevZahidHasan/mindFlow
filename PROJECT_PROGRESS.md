@@ -759,7 +759,7 @@ Add a concise summary table near the top of `PROJECT_PROGRESS.md`:
 | 9     | WebGL / 3D Knowledge Experience                         | COMPLETE |
 | 10    | AI Search & Intelligence Engine                         | COMPLETE |
 | 11    | AI Assistant & Command Center                           | COMPLETE |
-| 12    | Projects, Collections & Timeline                        | PLANNED  |
+| 12    | Projects, Collections & Timeline                        | COMPLETE |
 | 13    | Advanced UX, Motion & Micro-Interactions                | PLANNED  |
 | 14    | Mobile-First & Responsive Excellence                    | PLANNED  |
 | 15    | Accessibility, Security, Performance & Production Audit | PLANNED  |
@@ -776,7 +776,7 @@ At the bottom of the document, maintain:
 
 ### Current Phase
 
-Phase 11 — AI Assistant & Command Center
+Phase 12 — Projects, Collections & Timeline
 
 ### Status
 
@@ -784,7 +784,7 @@ COMPLETE
 
 ### Next Phase
 
-Phase 12 — Projects, Collections & Timeline
+Phase 13 — Advanced UX, Motion & Micro-Interactions
 
 ### Human Approval Required
 

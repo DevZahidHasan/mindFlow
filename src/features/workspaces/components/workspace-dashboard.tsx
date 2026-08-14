@@ -8,6 +8,12 @@ import { KnowledgeEdge } from "@/features/knowledge/schemas/edge.schema";
 import { KnowledgeNode } from "@/features/knowledge/schemas/node.schema";
 import { NoteList } from "@/features/knowledge/components/note-index/note-list";
 import { KnowledgeUniverse } from "@/features/knowledge/components/knowledge-universe";
+import { TimelineView } from "@/features/timeline/components/timeline-view";
+import { ProjectsView } from "@/features/projects/components/projects-view";
+import { CollectionsView } from "@/features/collections/components/collections-view";
+import { TimelineEvent } from "@/features/timeline/schemas/timeline.schema";
+import { Project } from "@/features/projects/schemas/project.schema";
+import { Collection } from "@/features/collections/schemas/collection.schema";
 
 interface WorkspaceDashboardProps {
   workspaceId: string;
@@ -17,8 +23,15 @@ interface WorkspaceDashboardProps {
   workspaces: WorkspaceItem[];
   activeTab?: string;
   focusedNodeId?: string;
+  filterProjectId?: string;
+  filterCollectionId?: string;
   nodes?: KnowledgeNode[];
   edges?: KnowledgeEdge[];
+  timelineEvents?: TimelineEvent[];
+  projects?: Project[];
+  collections?: Collection[];
+  projectNodeIds?: string[];
+  collectionNodeIds?: string[];
 }
 
 export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
@@ -29,11 +42,34 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
   workspaces,
   activeTab = "universe",
   focusedNodeId,
+  filterProjectId,
+  filterCollectionId,
   nodes = [],
   edges = [],
+  timelineEvents = [],
+  projects = [],
+  collections = [],
+  projectNodeIds = [],
+  collectionNodeIds = [],
 }) => {
   const [introComplete, setIntroComplete] = React.useState(false);
   const [isListView, setIsListView] = React.useState(false);
+
+  // Filter nodes & edges if a project or collection filter is active
+  const filteredNodes = React.useMemo(() => {
+    if (filterProjectId) {
+      return nodes.filter(n => projectNodeIds.includes(n.id));
+    }
+    if (filterCollectionId) {
+      return nodes.filter(n => collectionNodeIds.includes(n.id));
+    }
+    return nodes;
+  }, [nodes, filterProjectId, projectNodeIds, filterCollectionId, collectionNodeIds]);
+
+  const filteredEdges = React.useMemo(() => {
+    const validIds = new Set(filteredNodes.map(n => n.id));
+    return edges.filter(e => validIds.has(e.source_id) && validIds.has(e.target_id));
+  }, [edges, filteredNodes]);
 
   // Read saved completion flags to allow skipping on returning entries during the same session
   React.useEffect(() => {
@@ -53,36 +89,32 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
     return <WorkspaceIntro workspaceName={workspaceName} onComplete={handleCompleteIntro} />;
   }
 
-  // Renders view states dynamically using URL parameter triggers (eliminates global state managers)
+  // Renders view states dynamically using URL parameter triggers
   const renderTabContent = () => {
     switch (activeTab) {
+      case "projects":
+        return <ProjectsView workspaceId={workspaceId} projects={projects} nodes={nodes} />;
+      case "collections":
+        return <CollectionsView workspaceId={workspaceId} collections={collections} />;
+      case "timeline":
+        return (
+          <TimelineView
+            workspaceId={workspaceId}
+            events={timelineEvents}
+            focusedNodeId={focusedNodeId}
+          />
+        );
       case "focus":
         return (
-          <div className="flex flex-col gap-4 animate-[fadeInUp_1s_cubic-bezier(0.16,1,0.3,1)] select-none">
+          <div className="flex flex-col gap-4 animate-[fadeInUp_1s_cubic-bezier(0.16,1,0.3,1)] select-none max-w-2xl mx-auto py-12 px-6">
             <span className="text-xs font-mono text-accent uppercase tracking-widest">
               Workspace Focus Space
             </span>
             <h1 className="text-3xl font-display font-medium text-foreground tracking-tight uppercase">
               Focus Environment
             </h1>
-            <p className="text-sm text-muted max-w-xl leading-relaxed font-sans">
-              Welcome to your calm writing zone. Write down concepts, thoughts, and reflections without
-              distraction. Future phases will load markdown editor tools and active note cards here.
-            </p>
-          </div>
-        );
-      case "timeline":
-        return (
-          <div className="flex flex-col gap-4 animate-[fadeInUp_1s_cubic-bezier(0.16,1,0.3,1)] select-none">
-            <span className="text-xs font-mono text-accent uppercase tracking-widest">
-              Chronological Timeline
-            </span>
-            <h1 className="text-3xl font-display font-medium text-foreground tracking-tight uppercase">
-              Knowledge Log
-            </h1>
-            <p className="text-sm text-muted max-w-xl leading-relaxed font-sans">
-              Trace the historical shape of your learnings. View edits, connections, and events in
-              chronological order. Future updates will display historical timelines here.
+            <p className="text-sm text-muted leading-relaxed font-sans">
+              Welcome to your calm writing zone. Open any note from the Universe or Timeline to begin an uninterrupted editorial focus session.
             </p>
           </div>
         );
@@ -90,11 +122,21 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
       default:
         return (
           <div className="flex-1 w-full h-full relative overflow-hidden bg-background">
-            {/* Absolute positioning for the List Toggle Control */}
+            {/* Absolute positioning for List & Project Filter Controls */}
             <div className="absolute top-8 right-8 z-50 flex items-center gap-2">
+              {filterProjectId && (
+                <span className="px-3 py-1.5 rounded-full border border-accent/40 bg-accent/10 text-[10px] uppercase font-mono tracking-wider text-accent">
+                  Project Lens Active
+                </span>
+              )}
+              {filterCollectionId && (
+                <span className="px-3 py-1.5 rounded-full border border-accent/40 bg-accent/10 text-[10px] uppercase font-mono tracking-wider text-accent">
+                  Collection Lens Active
+                </span>
+              )}
               <button
                 onClick={() => setIsListView(!isListView)}
-                className="px-4 py-2 rounded-full border border-border/40 bg-surface/80 backdrop-blur text-[10px] uppercase font-mono tracking-widest text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
+                className="px-4 py-2 rounded-full border border-border/40 bg-surface/80 backdrop-blur text-[10px] uppercase font-mono tracking-widest text-muted-foreground hover:text-foreground hover:border-accent transition-colors cursor-pointer"
                 title="Toggle WebGL Graph / List View"
               >
                 {isListView ? "Launch Universe" : "List View"}
@@ -103,11 +145,16 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
             
             {isListView ? (
               <div className="w-full h-full overflow-y-auto no-scrollbar animate-in fade-in zoom-in-95 duration-1000">
-                <NoteList notes={nodes} workspaceId={workspaceId} />
+                <NoteList notes={filteredNodes} workspaceId={workspaceId} />
               </div>
             ) : (
               <div className="w-full h-full animate-in fade-in zoom-in-95 duration-1000">
-                <KnowledgeUniverse nodes={nodes} edges={edges} workspaceId={workspaceId} focusedNodeId={focusedNodeId} />
+                <KnowledgeUniverse 
+                  nodes={filteredNodes} 
+                  edges={filteredEdges} 
+                  workspaceId={workspaceId} 
+                  focusedNodeId={focusedNodeId} 
+                />
               </div>
             )}
           </div>

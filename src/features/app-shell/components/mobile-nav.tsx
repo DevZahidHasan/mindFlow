@@ -13,9 +13,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onTriggerCommand,
 }) => {
   const navItems = [
-    { id: "focus", label: "Focus", icon: "●" },
     { id: "universe", label: "Universe", icon: "✦" },
-    { id: "timeline", label: "Timeline", icon: "⚓" },
+    { id: "projects", label: "Projects", icon: "◈" },
+    { id: "collections", label: "Collections", icon: "❖" },
+    { id: "timeline", label: "Log", icon: "⚓" },
   ];
 
   return (

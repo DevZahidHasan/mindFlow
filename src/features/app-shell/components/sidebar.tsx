@@ -16,9 +16,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab = "universe",
 }) => {
   const navItems = [
-    { id: "focus", label: "Focus Space", icon: "●" },
     { id: "universe", label: "Knowledge Universe", icon: "✦" },
-    { id: "timeline", label: "Chronological Timeline", icon: "⚓" },
+    { id: "projects", label: "Strategic Projects", icon: "◈" },
+    { id: "collections", label: "Collections", icon: "❖" },
+    { id: "timeline", label: "Knowledge Log", icon: "⚓" },
+    { id: "focus", label: "Focus Space", icon: "●" },
   ];
 
   return (

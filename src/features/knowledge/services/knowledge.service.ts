@@ -62,6 +62,18 @@ export class KnowledgeService {
         });
       }
 
+      // Record in historical timeline log
+      import("@/features/timeline/services/timeline.service").then(m => {
+        m.TimelineService.recordEvent({
+          workspace_id: node.workspace_id,
+          event_type: "NODE_CREATED",
+          node_id: node.id,
+          actor_id: userId,
+          title: `Created note: ${node.title}`,
+          description: (node.content || "").substring(0, 140),
+        }).catch(e => console.error("Timeline event failed:", e));
+      });
+
       return node;
     } catch (err) {
       throw normalizeError(err);
@@ -87,6 +99,16 @@ export class KnowledgeService {
         }
       });
 
+      // Record in timeline log
+      import("@/features/timeline/services/timeline.service").then(m => {
+        m.TimelineService.recordEvent({
+          workspace_id: node.workspace_id,
+          event_type: "NODE_UPDATED",
+          node_id: node.id,
+          title: `Updated note: ${node.title}`,
+        }).catch(e => console.error("Timeline event failed:", e));
+      });
+
       return node;
     } catch (err) {
       throw normalizeError(err);
@@ -95,12 +117,23 @@ export class KnowledgeService {
 
   static async archiveNode(nodeId: string, workspaceId: string, userId: string): Promise<KnowledgeNode> {
     try {
-      // Use the update mechanism to change status to 'archived'
-      return await this.updateNode({
+      const node = await this.updateNode({
         id: nodeId,
         workspace_id: workspaceId,
         status: "archived"
       });
+
+      import("@/features/timeline/services/timeline.service").then(m => {
+        m.TimelineService.recordEvent({
+          workspace_id: workspaceId,
+          event_type: "NODE_ARCHIVED",
+          node_id: nodeId,
+          actor_id: userId,
+          title: `Archived note: ${node.title}`,
+        }).catch(e => console.error("Timeline event failed:", e));
+      });
+
+      return node;
     } catch (err) {
       throw normalizeError(err);
     }
@@ -135,10 +168,21 @@ export class KnowledgeService {
         throw new AppErrorClass(parsed.error.issues[0].message, "VALIDATION_ERROR", 400);
       }
       
-      // Additional business logic could go here if needed (e.g. verifying nodes exist via a read)
-      // but the database handles this securely.
+      const edge = await EdgeRepository.createEdge(parsed.data);
 
-      return await EdgeRepository.createEdge(parsed.data);
+      // Record in historical timeline log
+      import("@/features/timeline/services/timeline.service").then(m => {
+        m.TimelineService.recordEvent({
+          workspace_id: edge.workspace_id,
+          event_type: "EDGE_CONNECTED",
+          node_id: edge.source_id,
+          secondary_node_id: edge.target_id,
+          title: `Connected knowledge in universe`,
+          description: edge.label || undefined,
+        }).catch(e => console.error("Timeline event failed:", e));
+      });
+
+      return edge;
     } catch (err) {
       throw normalizeError(err);
     }

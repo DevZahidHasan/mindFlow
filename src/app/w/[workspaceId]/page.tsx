@@ -14,6 +14,8 @@ interface WorkspacePageProps {
   searchParams: Promise<{
     tab?: string;
     focus?: string;
+    project?: string;
+    collection?: string;
   }>;
 }
 
@@ -57,11 +59,28 @@ export default async function WorkspaceDashboardPage({
 
   const displayName = profile?.display_name || user.email || "User Profile";
 
-  // 5. Fetch knowledge nodes and edges
-  const [nodes, edges] = await Promise.all([
+  // 5. Fetch knowledge nodes, edges, projects, collections, and timeline stream
+  const [nodes, edges, timelineEvents, projects, collections] = await Promise.all([
     KnowledgeService.getWorkspaceNodes(workspace.id),
-    KnowledgeService.getWorkspaceEdges(workspace.id)
+    KnowledgeService.getWorkspaceEdges(workspace.id),
+    (await import("@/features/timeline/services/timeline.service")).TimelineService.getWorkspaceTimeline(workspace.id, { limit: 100 }),
+    (await import("@/features/projects/services/project.service")).ProjectService.getWorkspaceProjects(workspace.id),
+    (await import("@/features/collections/services/collection.service")).CollectionService.getWorkspaceCollections(workspace.id),
   ]);
+
+  const { project: filterProjectId, collection: filterCollectionId } = await searchParams;
+
+  let projectNodeIds: string[] = [];
+  if (filterProjectId) {
+    const { ProjectService } = await import("@/features/projects/services/project.service");
+    projectNodeIds = await ProjectService.getProjectNodeIds(workspace.id, filterProjectId);
+  }
+
+  let collectionNodeIds: string[] = [];
+  if (filterCollectionId) {
+    const { CollectionService } = await import("@/features/collections/services/collection.service");
+    collectionNodeIds = await CollectionService.getCollectionNodeIds(workspace.id, filterCollectionId);
+  }
 
   return (
     <WorkspaceDashboard
@@ -72,8 +91,15 @@ export default async function WorkspaceDashboardPage({
       workspaces={workspacesItems}
       activeTab={tab}
       focusedNodeId={focus}
+      filterProjectId={filterProjectId}
+      filterCollectionId={filterCollectionId}
       nodes={nodes}
       edges={edges}
+      timelineEvents={timelineEvents}
+      projects={projects}
+      collections={collections}
+      projectNodeIds={projectNodeIds}
+      collectionNodeIds={collectionNodeIds}
     />
   );
 }
