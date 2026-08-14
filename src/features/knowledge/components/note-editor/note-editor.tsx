@@ -7,6 +7,7 @@ import { KnowledgeNode } from "../../schemas/node.schema";
 import { useSpring, SPRING_PRESETS } from "@/lib/hooks/use-spring";
 import { RelatedPanel } from "../related-knowledge/related-panel";
 import { RelationshipLine } from "../relationship-editor/relationship-line";
+import { InspectorPortal } from "@/features/app-shell/context/inspector-context";
 
 type SaveState = "DRAFT" | "EDITING" | "SAVING" | "STORED";
 
@@ -25,14 +26,48 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ workspaceId, initialNote
   
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [summaryState, setSummaryState] = useState<"IDLE" | "UNDERSTANDING" | "DISTILLING" | "FORMING" | "READY">("IDLE");
+  const [summaryText, setSummaryText] = useState<string>(initialNote?.metadata?.ai_summary || "");
+
   // Note -> Node Transformation Physics
   // 1 when node is persisted, 0 when draft
-  const isPersisted = nodeId !== undefined;
+  const isPersisted = nodeId !== undefined && saveState !== "DRAFT";
   const nodePresenceSpring = useSpring(isPersisted ? 1 : 0, SPRING_PRESETS.cinematic);
   
   // Autosave indicator orbital movement
   const isSaving = saveState === "SAVING";
   const orbitSpeed = useSpring(isSaving ? 1 : 0, SPRING_PRESETS.micro);
+
+  // Summary animation springs
+  const isSummarizing = summaryState !== "IDLE" && summaryState !== "READY";
+  const summaryOrbitSpring = useSpring(isSummarizing ? 1 : 0, SPRING_PRESETS.cinematic);
+  const contentShrinkSpring = useSpring(isSummarizing ? 1 : 0, SPRING_PRESETS.editorial);
+  const summaryRevealSpring = useSpring(summaryState === "READY" ? 1 : 0, SPRING_PRESETS.cinematic);
+
+  const handleGenerateSummary = async () => {
+    if (!nodeId || !workspaceId) return;
+    
+    // Sequence states based on prompt guidelines
+    setSummaryState("UNDERSTANDING");
+    
+    const summaryRequest = import("../../../ai/actions/summary-actions").then(m => m.generateSummaryAction(workspaceId, nodeId));
+
+    // Guarantee minimum cinematic screen time for states
+    await new Promise(r => setTimeout(r, 600));
+    setSummaryState("DISTILLING");
+    
+    await new Promise(r => setTimeout(r, 600));
+    setSummaryState("FORMING");
+
+    const res = await summaryRequest;
+
+    if (res.success && res.data) {
+      setSummaryText(res.data);
+      setSummaryState("READY");
+    } else {
+      setSummaryState("IDLE");
+    }
+  };
 
   const handleSave = useCallback(async (currentTitle: string, currentContent: string) => {
     if (!currentTitle.trim()) return;
@@ -127,7 +162,19 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ workspaceId, initialNote
           transform: `scale(${nodePresenceSpring}) translateX(${(1 - nodePresenceSpring) * -20}px)`,
         }}
       >
-        <div className="w-2 h-2 rounded-full bg-accent/50" />
+        <div className="w-2 h-2 rounded-full bg-accent/50 relative">
+          {/* AI Summarization Orbit */}
+          {summaryState !== "IDLE" && summaryState !== "READY" && (
+             <div 
+               className="absolute inset-[-8px] border border-dashed border-accent/40 rounded-full"
+               style={{
+                 opacity: summaryOrbitSpring,
+                 transform: `rotate(${summaryOrbitSpring * 360}deg)`,
+                 transition: 'transform 2s linear infinite'
+               }}
+             />
+          )}
+        </div>
         <div 
           className="absolute w-12 h-[1px] bg-accent/20 left-2 origin-left"
           style={{ transform: `scaleX(${nodePresenceSpring})` }}
@@ -183,14 +230,31 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ workspaceId, initialNote
             </div>
           </div>
         </div>
+
+        {/* AI Summarize Action */}
+        {isPersisted && nodeId && (
+          <div className="flex items-center gap-4 text-xs font-mono tracking-widest uppercase">
+            {summaryState !== "IDLE" && summaryState !== "READY" && (
+              <span className="text-accent animate-pulse">{summaryState}</span>
+            )}
+            <button 
+              onClick={handleGenerateSummary}
+              disabled={summaryState !== "IDLE" && summaryState !== "READY"}
+              className="px-4 py-2 text-foreground/50 hover:text-accent transition-colors disabled:opacity-50"
+            >
+              Insight
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Editor Surface */}
       <div 
-        className="flex flex-col gap-8 relative z-10"
+        className="flex flex-col gap-8 relative z-10 transition-transform duration-[1500ms] ease-out"
         style={{
-          // Subtle spatial shift when converted to node
-          transform: `translateZ(${nodePresenceSpring * 10}px) scale(${1 - nodePresenceSpring * 0.01})`,
+          // Subtle spatial shift when converted to node or summarizing
+          transform: `translateZ(${nodePresenceSpring * 10}px) scale(${1 - nodePresenceSpring * 0.01 - contentShrinkSpring * 0.02}) translateY(${summaryRevealSpring * 40}px)`,
+          opacity: 1 - contentShrinkSpring * 0.4
         }}
       >
         <div className="relative">
@@ -209,6 +273,21 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ workspaceId, initialNote
           />
         </div>
 
+        {/* AI Summary Display */}
+        {(summaryText || summaryState === "READY") && (
+          <div 
+            className="pl-6 border-l border-accent/30 max-w-2xl py-2 my-4 transition-all duration-[1500ms] ease-out overflow-hidden"
+            style={{
+              opacity: summaryText ? 1 : summaryRevealSpring,
+              maxHeight: summaryText ? '500px' : `${summaryRevealSpring * 500}px`
+            }}
+          >
+            <p className="text-sm md:text-base font-serif italic leading-relaxed text-foreground/80">
+              {summaryText}
+            </p>
+          </div>
+        )}
+
         <div className="w-12 h-[1px] bg-border/50" />
 
         <textarea
@@ -219,7 +298,12 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ workspaceId, initialNote
         />
       </div>
 
-      {isPersisted && nodeId && <RelatedPanel currentNodeId={nodeId} workspaceId={workspaceId} content={content} />}
+      {/* Teleport RelatedPanel to the right Context Inspector sidebar */}
+      {isPersisted && nodeId && (
+        <InspectorPortal>
+          <RelatedPanel currentNodeId={nodeId} workspaceId={workspaceId} content={content} />
+        </InspectorPortal>
+      )}
     </div>
   );
 };

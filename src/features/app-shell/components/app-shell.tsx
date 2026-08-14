@@ -7,6 +7,8 @@ import { MobileNav } from "./mobile-nav";
 import { WorkspaceItem } from "./workspace-switcher";
 import { SearchDialog } from "@/features/knowledge/components/knowledge-search/search-dialog";
 
+import { AiSessionProvider } from "@/features/ai/context/ai-session-context";
+
 interface AppShellProps {
   children: React.ReactNode;
   workspaceId: string;
@@ -17,7 +19,7 @@ interface AppShellProps {
   activeTab?: string;
 }
 
-export const AppShell: React.FC<AppShellProps> = ({
+const AppShellInner: React.FC<AppShellProps> = ({
   children,
   workspaceId,
   currentWorkspace,
@@ -70,21 +72,25 @@ export const AppShell: React.FC<AppShellProps> = ({
         </main>
 
         {/* Right context inspector sidebar column */}
-        <aside className="w-80 h-full border-l border-border/40 bg-surface-subtle p-6 select-none shrink-0 hidden lg:flex flex-col gap-6">
-          <span className="text-[10px] font-mono text-muted uppercase tracking-widest border-b border-border/40 pb-2">
-            Context Inspector
-          </span>
-          <div className="flex flex-col gap-4 text-sm font-sans text-muted">
-            <h5 className="font-semibold text-foreground">Active Universe State</h5>
-            <p className="leading-relaxed text-xs">
-              MINDSPACE dynamic graphs automatically balance layout forces in real time as you write. Click nodes or hover connection edges to load detailed semantic logs here.
-            </p>
-            <div className="p-4 rounded-lg bg-surface border border-border flex flex-col gap-1.5 mt-2">
-              <span className="text-[9px] font-mono uppercase text-muted">Node telemetry</span>
-              <span className="text-xs text-foreground font-semibold">
-                Workspace: {currentWorkspace.name}
-              </span>
-              <span className="text-xs text-foreground">Current view: {activeTab.toUpperCase()}</span>
+        <aside className="w-80 h-full border-l border-border/40 bg-surface-subtle p-6 select-none shrink-0 hidden lg:flex flex-col gap-6 overflow-y-auto no-scrollbar">
+          <div id="inspector-portal-target" className="w-full flex flex-col gap-5" />
+
+          <div id="inspector-default-content" className="flex flex-col gap-6 w-full">
+            <span className="text-[10px] font-mono text-muted uppercase tracking-widest border-b border-border/40 pb-2">
+              Context Inspector
+            </span>
+            <div className="flex flex-col gap-4 text-sm font-sans text-muted">
+              <h5 className="font-semibold text-foreground">Active Universe State</h5>
+              <p className="leading-relaxed text-xs">
+                MINDSPACE dynamic graphs automatically balance layout forces in real time as you write. Click nodes or hover connection edges to load detailed semantic logs here.
+              </p>
+              <div className="p-4 rounded-lg bg-surface border border-border flex flex-col gap-1.5 mt-2">
+                <span className="text-[9px] font-mono uppercase text-muted">Node telemetry</span>
+                <span className="text-xs text-foreground font-semibold">
+                  Workspace: {currentWorkspace.name}
+                </span>
+                <span className="text-xs text-foreground">Current view: {activeTab.toUpperCase()}</span>
+              </div>
             </div>
           </div>
         </aside>
@@ -106,4 +112,13 @@ export const AppShell: React.FC<AppShellProps> = ({
     </div>
   );
 };
+
+export const AppShell: React.FC<AppShellProps> = (props) => {
+  return (
+    <AiSessionProvider>
+      <AppShellInner {...props} />
+    </AiSessionProvider>
+  );
+};
+
 export default AppShell;

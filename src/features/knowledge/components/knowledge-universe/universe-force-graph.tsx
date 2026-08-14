@@ -28,9 +28,13 @@ export const UniverseForceGraph: React.FC<UniverseProps> = ({ nodes, edges, work
 
     // Clone nodes and edges to give D3 its own objects to mutate
     const simNodes: GraphNode[] = nodes.map(n => ({ ...n }));
+    const nodeIds = new Set(simNodes.map(n => n.id));
     
     // Map edge source/target to the actual node objects (D3 requirement)
-    const simEdges: GraphEdge[] = edges.map(e => ({
+    // Filter out any edge where source or target node does not exist in the node set
+    const validEdges = edges.filter(e => nodeIds.has(e.source_id) && nodeIds.has(e.target_id));
+
+    const simEdges: GraphEdge[] = validEdges.map(e => ({
       ...e,
       source: e.source_id,
       target: e.target_id
@@ -64,7 +68,7 @@ export const UniverseForceGraph: React.FC<UniverseProps> = ({ nodes, edges, work
 
   return (
     <group>
-      <UniverseEdges edges={graphData.edges} />
+      <UniverseEdges edges={graphData.edges} focusedNodeId={focusedNodeId} />
       <UniverseNodes 
         nodes={graphData.nodes} 
         workspaceId={workspaceId} 

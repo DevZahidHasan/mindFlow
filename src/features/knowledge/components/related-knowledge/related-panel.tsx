@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useMemo, useEffect, useState } from "react";
-import { KnowledgeNode } from "../../schemas/node.schema";
-import { usePointerPhysics } from "@/lib/hooks/use-pointer-physics";
+import React, { useEffect, useState } from "react";
 import { SemanticConnection } from "@/lib/ai/types";
 import { useRouter } from "next/navigation";
 
@@ -12,19 +10,140 @@ interface RelatedPanelProps {
   content: string;
 }
 
-export const RelatedPanel: React.FC<RelatedPanelProps> = ({ currentNodeId, workspaceId, content }) => {
+const ConnectionCard = ({ 
+  n, 
+  workspaceId, 
+  currentNodeId 
+}: { 
+  n: SemanticConnection; 
+  workspaceId: string;
+  currentNodeId: string;
+}) => {
   const router = useRouter();
+  const [status, setStatus] = useState<"SUGGESTED" | "CONNECTING" | "CONNECTED">(
+    n.isConnected ? "CONNECTED" : "SUGGESTED"
+  );
+
+  useEffect(() => {
+    if (n.isConnected) {
+      setStatus("CONNECTED");
+    }
+  }, [n.isConnected]);
+
+  const isConnecting = status === "CONNECTING";
+  const isConnected = status === "CONNECTED";
+
+  const handleConnect = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (status !== "SUGGESTED") return;
+
+    setStatus("CONNECTING");
+    
+    try {
+      const { acceptSemanticRelationshipAction } = await import("../../actions/edge-actions");
+      const res = await acceptSemanticRelationshipAction(workspaceId, currentNodeId, n.targetNodeId);
+      
+      if (res.success) {
+        setStatus("CONNECTED");
+        router.refresh();
+      } else {
+        setStatus("SUGGESTED");
+      }
+    } catch (err) {
+      setStatus("SUGGESTED");
+    }
+  };
+
+  const handleExplore = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/w/${workspaceId}/notes/${n.targetNodeId}`);
+  };
+
+  return (
+    <div 
+      className={`w-full p-4 rounded-xl border transition-all duration-300 flex flex-col gap-3 ${
+        isConnected 
+          ? "bg-accent/5 border-accent/40 shadow-[0_0_15px_rgba(212,175,55,0.08)]" 
+          : "bg-surface/90 hover:bg-surface border-border/70 hover:border-accent/50 shadow-md"
+      }`}
+    >
+      {/* Top row: Indicator dot + Note title */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div 
+            className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+              isConnected ? "bg-accent shadow-[0_0_8px_var(--color-accent)]" : "bg-muted-foreground/60"
+            }`}
+          />
+          <h4 className="font-sans font-semibold text-sm text-foreground truncate">
+            {n.title}
+          </h4>
+        </div>
+
+        {isConnected ? (
+          <span className="text-[10px] font-mono uppercase tracking-wider text-accent bg-accent/15 px-2 py-0.5 rounded-full shrink-0 font-semibold">
+            ✓ Connected
+          </span>
+        ) : (
+          <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground bg-surface-subtle px-2 py-0.5 rounded-full shrink-0">
+            Suggested
+          </span>
+        )}
+      </div>
+
+      {/* Explanation / Context */}
+      {n.explanation && (
+        <p className="text-xs text-muted leading-relaxed font-sans line-clamp-2">
+          {n.explanation}
+        </p>
+      )}
+
+      {/* Action Buttons Row */}
+      <div className="flex items-center gap-2 pt-1">
+        {!isConnected && (
+          <button
+            onClick={handleConnect}
+            disabled={isConnecting}
+            className="flex-1 py-2 px-3 rounded-lg bg-accent text-black font-semibold text-xs font-sans hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+            title="Create permanent connection line in 3D Universe"
+          >
+            {isConnecting ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-black animate-ping" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <span className="text-sm font-bold leading-none">+</span>
+                <span>Connect</span>
+              </>
+            )}
+          </button>
+        )}
+
+        <button
+          onClick={handleExplore}
+          className={`py-2 px-3 rounded-lg border text-xs font-sans font-medium transition-all cursor-pointer flex items-center justify-center gap-1 ${
+            isConnected
+              ? "flex-1 bg-surface border-border hover:border-accent text-foreground hover:bg-surface-subtle"
+              : "bg-surface-subtle hover:bg-surface border-border/80 text-muted-foreground hover:text-foreground"
+          }`}
+          title="Open note in editor"
+        >
+          <span>Open Note</span>
+          <span className="text-xs">↗</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export const RelatedPanel: React.FC<RelatedPanelProps> = ({ currentNodeId, workspaceId, content }) => {
   const [suggestions, setSuggestions] = useState<SemanticConnection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const pointer = usePointerPhysics(undefined, {
-    global: true,
-    maxDisplacement: 20,
-  });
-
   useEffect(() => {
-    // Debounce fetching suggestions when content changes
-    if (!content.trim() || !workspaceId || !currentNodeId) return;
+    if (!workspaceId || !currentNodeId) return;
 
     const timer = setTimeout(() => {
       setIsLoading(true);
@@ -35,87 +154,60 @@ export const RelatedPanel: React.FC<RelatedPanelProps> = ({ currentNodeId, works
         }
         setIsLoading(false);
       });
-    }, 2000); // 2 second debounce
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [content, workspaceId, currentNodeId]);
 
-  // Spatial arrangement
-  const arrangedNodes = useMemo(() => {
-    if (suggestions.length === 0) {
-      if (isLoading) {
-        return [
-          { id: "loading", title: "Analyzing semantic context...", x: 80, y: 40, opacity: 0.3, similarity: 0 },
-        ];
-      }
-      return [
-        { id: "ghost-1", title: "Type to discover connections", x: 60, y: -20, opacity: 0.2, similarity: 0 },
-      ];
-    }
-    
-    return suggestions.map((n, i) => {
-      const angle = (i / suggestions.length) * Math.PI * 2;
-      const radius = 60 + Math.random() * 60; // Varying orbits
-      return {
-        id: n.targetNodeId,
-        title: n.title,
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius,
-        opacity: 0.5 + (n.similarity * 0.5), // More similar = more opaque
-        similarity: n.similarity,
-      };
-    });
-  }, [suggestions, isLoading]);
-
   return (
-    <div className="absolute right-0 top-32 w-64 h-64 pointer-events-none hidden lg:block border-l border-transparent z-10">
-      <div className="text-[10px] uppercase tracking-widest text-muted-foreground/30 absolute -top-8 right-8 flex items-center gap-2">
-        Semantic Orbit
-        {isLoading && <div className="w-1.5 h-1.5 rounded-full bg-accent animate-ping" />}
+    <div className="flex flex-col gap-5 w-full">
+      {/* Side Panel Header */}
+      <div className="flex items-center justify-between pb-2 border-b border-border/40">
+        <span className="text-[10px] font-mono text-muted uppercase tracking-widest">
+          Semantic Orbit & Connections
+        </span>
+        {isLoading && (
+          <span className="text-[10px] font-mono text-accent animate-pulse uppercase">
+            Scanning...
+          </span>
+        )}
       </div>
-      
-      <div 
-        className="relative w-full h-full transition-transform duration-500 ease-out"
-        style={{
-          transform: `translate(${pointer.x * 0.5}px, ${pointer.y * 0.5}px)`
-        }}
-      >
-        {arrangedNodes.map((n) => (
-          <div
-            key={n.id}
-            onClick={() => {
-               if (n.similarity > 0) router.push(`/w/${workspaceId}/notes/${n.id}`);
-            }}
-            className={`absolute p-2 cursor-pointer group ${n.similarity > 0 ? "pointer-events-auto" : "pointer-events-none"}`}
-            style={{
-              left: `calc(50% + ${n.x}px)`,
-              top: `calc(50% + ${n.y}px)`,
-              opacity: n.opacity,
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-1.5 h-1.5 rounded-full transition-all duration-300 group-hover:scale-150" 
-                style={{ backgroundColor: n.similarity > 0.8 ? 'var(--color-accent)' : 'var(--color-foreground)', opacity: n.similarity > 0 ? 0.6 : 0.2 }}
-              />
-              <span className="text-xs font-sans text-foreground/50 group-hover:text-foreground transition-colors whitespace-nowrap">
-                {n.title}
-                {n.similarity > 0 && <span className="ml-2 font-mono text-[9px] text-accent/50 opacity-0 group-hover:opacity-100 transition-opacity">{(n.similarity * 100).toFixed(0)}%</span>}
-              </span>
-            </div>
-            
-            <svg className="absolute inset-0 w-[200px] h-[200px] pointer-events-none -z-10" style={{ overflow: "visible", left: "-100px", top: "-100px" }}>
-               <line 
-                 x1="100" y1="100" 
-                 x2={100 - n.x} y2={100 - n.y} 
-                 stroke="currentColor" 
-                 strokeWidth={n.similarity > 0.85 ? "1" : "0.5"} 
-                 className="text-border/30 group-hover:text-accent/50 transition-colors" 
-               />
-            </svg>
+
+      {/* List of Connection Cards */}
+      <div className="flex flex-col gap-3">
+        {suggestions.length > 0 ? (
+          suggestions.map((n) => (
+            <ConnectionCard 
+              key={n.targetNodeId} 
+              n={n} 
+              workspaceId={workspaceId} 
+              currentNodeId={currentNodeId} 
+            />
+          ))
+        ) : isLoading ? (
+          <div className="p-6 rounded-xl border border-border/40 bg-surface/50 flex flex-col items-center justify-center gap-2 text-center">
+            <div className="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+            <span className="text-xs font-mono text-muted">Analyzing connections...</span>
           </div>
-        ))}
+        ) : (
+          <div className="p-4 rounded-xl border border-border/40 bg-surface/30 flex flex-col gap-2">
+            <span className="text-xs font-sans font-semibold text-foreground">
+              Semantic Orbit Active
+            </span>
+            <p className="text-xs font-sans text-muted leading-relaxed">
+              As you write, concepts sharing overlap with this note will appear here so you can connect them directly into your 3D Universe.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Side Panel Telemetry Footer */}
+      <div className="p-4 rounded-xl bg-surface border border-border/60 flex flex-col gap-1.5 mt-2">
+        <span className="text-[9px] font-mono uppercase text-muted">Active Node Target</span>
+        <span className="text-xs font-mono text-accent font-semibold">
+          NOTE {currentNodeId.slice(0, 8)}
+        </span>
+        <span className="text-xs text-muted-foreground">Status: Connected to Universe Core</span>
       </div>
     </div>
   );

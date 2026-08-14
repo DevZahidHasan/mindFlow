@@ -8,24 +8,21 @@ export interface SpringConfig {
 }
 
 export const SPRING_PRESETS = {
-  micro: { tension: 120, friction: 22, mass: 1 },        // 250-500ms snappy response
-  ui: { tension: 80, friction: 36, mass: 1.2 },          // 500-900ms standard UI
-  editorial: { tension: 40, friction: 40, mass: 1.5 },   // 900-1600ms graceful settling
-  cinematic: { tension: 20, friction: 45, mass: 2.0 },   // 1400-2600ms slow, deliberate
+  micro: { tension: 120, friction: 22, mass: 1, precision: 0.005 },        // 250-500ms snappy response
+  ui: { tension: 80, friction: 36, mass: 1.2, precision: 0.005 },          // 500-900ms standard UI
+  editorial: { tension: 40, friction: 40, mass: 1.5, precision: 0.005 },   // 900-1600ms graceful settling
+  cinematic: { tension: 20, friction: 45, mass: 2.0, precision: 0.005 },   // 1400-2600ms slow, deliberate
 } as const;
 
 /**
  * A lightweight, stable delta-time spring physics hook.
- * Resolves scroll-lock delay bugs by allowing continuous loops to run without
- * cleanup interruptions during active value changes.
+ * Resolves infinite render loops by storing configuration in refs and decoupling rAF from re-render cascades.
  */
 export function useSpring(targetValue: number, config: SpringConfig = {}) {
-  const {
-    tension = 80,       // Moderate tension
-    friction = 36,      // High damping
-    mass = 1.2,         // Heavy inertia
-    precision = 0.005,
-  } = config;
+  const tension = config.tension ?? 80;
+  const friction = config.friction ?? 36;
+  const mass = config.mass ?? 1.2;
+  const precision = config.precision ?? 0.005;
 
   const [current, setCurrent] = useState(targetValue);
   const stateRef = useRef({
@@ -37,8 +34,11 @@ export function useSpring(targetValue: number, config: SpringConfig = {}) {
     rId: 0,
   });
 
-  // Keep target updated across renders
+  // Always sync target coordinate
   stateRef.current.target = targetValue;
+
+  const configRef = useRef({ tension, friction, mass, precision });
+  configRef.current = { tension, friction, mass, precision };
 
   // Cleanup on unmount only
   useEffect(() => {
@@ -46,6 +46,7 @@ export function useSpring(targetValue: number, config: SpringConfig = {}) {
       const state = stateRef.current;
       if (state.rId) {
         cancelAnimationFrame(state.rId);
+        state.rId = 0;
       }
     };
   }, []);
@@ -53,79 +54,94 @@ export function useSpring(targetValue: number, config: SpringConfig = {}) {
   // Update target coordinates and manage loop lifecycle
   useEffect(() => {
     const state = stateRef.current;
+    const { precision: prec } = configRef.current;
 
-    // Graceful override: respect prefers-reduced-motion
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mediaQuery.matches) {
-      setCurrent(targetValue);
-      state.current = targetValue;
-      state.velocity = 0;
+    // If already at target within precision, snap and return
+    if (Math.abs(state.current - targetValue) <= prec && Math.abs(state.velocity) <= prec) {
+      if (state.current !== targetValue) {
+        state.current = targetValue;
+        state.velocity = 0;
+        setCurrent(targetValue);
+      }
       return;
     }
 
-    // If loop is already running, let it run (it naturally reads the updated stateRef.current.target)
+    // If loop is already running, it will automatically read the updated stateRef.current.target
     if (state.animating) {
       return;
     }
 
-    // Start loop if we are not aligned
-    if (Math.abs(state.current - targetValue) > precision) {
-      state.animating = true;
-      state.lastTime = 0;
-
-      const loop = (timestamp: number) => {
-        if (!state.lastTime) {
-          state.lastTime = timestamp;
-          state.rId = requestAnimationFrame(loop);
-          return;
-        }
-
-        // Delta time capped to prevent explosions on tab unfocus
-        let dt = (timestamp - state.lastTime) / 1000;
-        state.lastTime = timestamp;
-        if (dt > 0.1) dt = 0.1;
-
-        // Fixed-step Euler integration for unconditional stability
-        const TIME_STEP = 0.008; // 8ms internal physics step
-        let timeAccumulator = dt;
-
-        while (timeAccumulator > 0) {
-          const step = Math.min(timeAccumulator, TIME_STEP);
-          
-          // Hooke's Law with damping: Force = -k * x - c * v
-          const displacement = state.current - state.target;
-          const springForce = -tension * displacement;
-          const dampingForce = -friction * state.velocity;
-          const force = springForce + dampingForce;
-          const acceleration = force / mass;
-
-          state.velocity += acceleration * step;
-          state.current += state.velocity * step;
-          
-          timeAccumulator -= step;
-        }
-
-        // Convergence check
-        const isSettled =
-          Math.abs(state.current - state.target) < precision &&
-          Math.abs(state.velocity) < precision;
-
-        if (isSettled) {
-          state.current = state.target;
-          state.velocity = 0;
-          state.lastTime = 0;
-          state.animating = false;
-          state.rId = 0;
-          setCurrent(state.target);
-        } else {
-          setCurrent(state.current);
-          state.rId = requestAnimationFrame(loop);
-        }
-      };
-
-      state.rId = requestAnimationFrame(loop);
+    // Graceful override: respect prefers-reduced-motion
+    if (typeof window !== "undefined") {
+      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      if (mediaQuery.matches) {
+        state.current = targetValue;
+        state.velocity = 0;
+        setCurrent(targetValue);
+        return;
+      }
     }
-  }, [targetValue, tension, friction, mass, precision]);
+
+    state.animating = true;
+    state.lastTime = 0;
+
+    const loop = (timestamp: number) => {
+      const { tension: k, friction: c, mass: m, precision: p } = configRef.current;
+      
+      if (!state.lastTime) {
+        state.lastTime = timestamp;
+        state.rId = requestAnimationFrame(loop);
+        return;
+      }
+
+      // Delta time capped to prevent explosions on tab unfocus
+      let dt = (timestamp - state.lastTime) / 1000;
+      state.lastTime = timestamp;
+      if (dt > 0.05) dt = 0.05;
+
+      // Fixed-step Euler integration for unconditional stability
+      const TIME_STEP = 0.008; // 8ms internal physics step
+      let timeAccumulator = dt;
+      let iterations = 0;
+
+      while (timeAccumulator > 0 && iterations < 10) {
+        const step = Math.min(timeAccumulator, TIME_STEP);
+        
+        // Hooke's Law with damping: Force = -k * x - c * v
+        const displacement = state.current - state.target;
+        const springForce = -k * displacement;
+        const dampingForce = -c * state.velocity;
+        const force = springForce + dampingForce;
+        const acceleration = force / m;
+
+        state.velocity += acceleration * step;
+        state.current += state.velocity * step;
+        
+        timeAccumulator -= step;
+        iterations++;
+      }
+
+      // Convergence check
+      const isSettled =
+        Math.abs(state.current - state.target) < p &&
+        Math.abs(state.velocity) < p;
+
+      if (isSettled) {
+        state.current = state.target;
+        state.velocity = 0;
+        state.lastTime = 0;
+        state.animating = false;
+        state.rId = 0;
+        setCurrent(state.target);
+      } else {
+        setCurrent(state.current);
+        state.rId = requestAnimationFrame(loop);
+      }
+    };
+
+    state.rId = requestAnimationFrame(loop);
+  }, [targetValue]);
 
   return current;
 }
+
