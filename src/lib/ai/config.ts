@@ -4,7 +4,7 @@ export const AI_CONFIG = {
   
   // Model configurations
   MODELS: {
-    CHAT: process.env.AI_LLM_MODEL || "llama-3.1-8b-instant",
+    CHAT: process.env.AI_LLM_MODEL || "openai/gpt-oss-20b",
   },
 
   // Chunking settings
