@@ -125,10 +125,11 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map(project => (
+          {projects.map((project, index) => (
             <div
               key={project.id}
-              className="group p-6 rounded-2xl bg-surface/70 hover:bg-surface border border-border/60 hover:border-accent/60 transition-all duration-300 flex flex-col justify-between gap-6 shadow-sm hover:shadow-xl"
+              className="group p-6 rounded-2xl bg-surface/70 hover:bg-surface border border-border/60 hover:border-accent/60 transition-all duration-500 flex flex-col justify-between gap-6 shadow-sm hover:shadow-xl hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4"
+              style={{ animationFillMode: "both", animationDelay: `${index * 75}ms` }}
             >
               <div 
                 className="flex flex-col gap-3 cursor-pointer"

@@ -1,6 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
 
+import { Magnetic } from "@/features/ui/magnetic";
+
 interface MobileNavProps {
   workspaceId: string;
   activeTab?: string;
@@ -24,26 +26,29 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       {navItems.map((item) => {
         const isActive = activeTab === item.id;
         return (
-          <Link
-            key={item.id}
-            href={`/w/${workspaceId}?tab=${item.id}`}
-            className={`flex flex-col items-center justify-center min-w-[64px] min-h-[44px] px-2 gap-1 text-[10px] font-mono tracking-wider transition-colors focus-visible:outline-2 focus-visible:outline-accent ${
-              isActive ? "text-accent font-semibold" : "text-muted"
-            }`}
-          >
-            <span className="text-base leading-none">{item.icon}</span>
-            <span>{item.label.toUpperCase()}</span>
-          </Link>
+          <Magnetic key={item.id} intensity={0.1}>
+            <Link
+              href={`/w/${workspaceId}?tab=${item.id}`}
+              className={`flex flex-col items-center justify-center min-w-[64px] min-h-[44px] px-2 gap-1 text-[10px] font-mono tracking-wider transition-colors focus-visible:outline-2 focus-visible:outline-accent ${
+                isActive ? "text-accent font-semibold" : "text-muted"
+              }`}
+            >
+              <span className="text-base leading-none">{item.icon}</span>
+              <span>{item.label.toUpperCase()}</span>
+            </Link>
+          </Magnetic>
         );
       })}
 
-      <button
-        onClick={onTriggerCommand}
-        className="flex flex-col items-center justify-center min-w-[64px] min-h-[44px] px-2 gap-1 text-[10px] font-mono tracking-wider text-muted hover:text-foreground cursor-pointer focus-visible:outline-2 focus-visible:outline-accent"
-      >
-        <span className="text-base leading-none">🔍</span>
-        <span>SEARCH</span>
-      </button>
+      <Magnetic intensity={0.1}>
+        <button
+          onClick={onTriggerCommand}
+          className="flex flex-col items-center justify-center min-w-[64px] min-h-[44px] px-2 gap-1 text-[10px] font-mono tracking-wider text-muted hover:text-foreground cursor-pointer focus-visible:outline-2 focus-visible:outline-accent"
+        >
+          <span className="text-base leading-none">🔍</span>
+          <span>SEARCH</span>
+        </button>
+      </Magnetic>
     </nav>
   );
 };

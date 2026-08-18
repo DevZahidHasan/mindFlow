@@ -99,74 +99,120 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           </p>
         </div>
       ) : (
-        <div className="relative pl-6 md:pl-10 border-l border-border/40 flex flex-col gap-10">
+        <div className="relative pl-6 md:pl-10 flex flex-col gap-10">
+          {/* Static subtle background track */}
+          <div className="absolute left-0 top-0 bottom-0 w-px bg-border/20" />
+          
+          {/* Scroll-Linked Parallax Line */}
+          <ScrollLinkedLine />
+
           {filteredEvents.map((event, index) => {
             const badge = getEventBadge(event.event_type);
             const date = new Date(event.created_at);
-            const formattedDate = date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            });
-            const formattedTime = date.toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-
+            const formattedDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+            const formattedTime = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
             const isCurrentNode = focusedNodeId && (event.node_id === focusedNodeId || event.secondary_node_id === focusedNodeId);
 
             return (
-              <div
-                key={event.id}
-                onClick={() => handleEventClick(event)}
-                className={`group relative flex flex-col gap-2 p-5 rounded-2xl border transition-all duration-300 cursor-pointer ${
-                  isCurrentNode
-                    ? "bg-accent/10 border-accent shadow-lg scale-[1.01]"
-                    : "bg-surface/70 hover:bg-surface border-border/60 hover:border-accent/40 shadow-sm"
-                }`}
-              >
-                {/* Timeline Anchor Node Point */}
-                <div 
-                  className={`absolute -left-[31px] md:-left-[47px] top-6 w-3 h-3 rounded-full border-2 transition-all ${
-                    event.event_type === "EDGE_CONNECTED" 
-                      ? "bg-accent border-background ring-4 ring-accent/20" 
-                      : "bg-surface border-muted-foreground group-hover:border-accent"
-                  }`} 
-                />
+              <ScrollReveal key={event.id} index={index}>
+                <div
+                  onClick={() => handleEventClick(event)}
+                  className={`group relative flex flex-col gap-2 p-5 rounded-2xl border transition-all duration-500 cursor-pointer ${
+                    isCurrentNode
+                      ? "bg-accent/10 border-accent shadow-lg"
+                      : "bg-surface/70 hover:bg-surface border-border/60 hover:border-accent/40 shadow-sm"
+                  }`}
+                >
+                  <div 
+                    className={`absolute -left-[31px] md:-left-[47px] top-6 w-3 h-3 rounded-full border-2 transition-all duration-500 ${
+                      event.event_type === "EDGE_CONNECTED" 
+                        ? "bg-accent border-background ring-4 ring-accent/20" 
+                        : "bg-surface border-muted-foreground group-hover:border-accent"
+                    }`} 
+                  />
 
-                {/* Event Header & Timestamp */}
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border uppercase tracking-wider font-semibold ${badge.color}`}>
-                      {badge.label}
-                    </span>
-                    {event.event_type === "EDGE_CONNECTED" && (
-                      <span className="text-[10px] font-mono text-accent">
-                        ✦ Click to fly in Universe ↗
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border uppercase tracking-wider font-semibold ${badge.color}`}>
+                        {badge.label}
                       </span>
-                    )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-sans text-muted">
+                      <span>{formattedDate}</span>
+                      <span className="text-border">•</span>
+                      <span>{formattedTime}</span>
+                    </div>
                   </div>
-                  <span className="text-[10px] font-mono text-muted">
-                    {formattedDate} • {formattedTime}
-                  </span>
-                </div>
 
-                {/* Event Title */}
-                <h4 className="text-base font-sans font-medium text-foreground group-hover:text-accent transition-colors">
-                  {event.title}
-                </h4>
-
-                {/* Event Description/Excerpt */}
-                {event.description && (
-                  <p className="text-xs font-sans text-muted leading-relaxed line-clamp-2">
+                  <p className="text-sm font-sans text-foreground/90 leading-relaxed mt-2">
                     {event.description}
                   </p>
-                )}
-              </div>
+
+                  {(event.node_id || event.secondary_node_id) && (
+                    <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-muted uppercase tracking-wider flex items-center gap-1.5 hover:text-accent transition-colors">
+                        <span className="text-accent/60">↳</span> 
+                        {event.event_type === "EDGE_CONNECTED" ? "Focus Relationship" : "Open Note"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </ScrollReveal>
             );
           })}
         </div>
       )}
+    </div>
+  );
+};
+
+// --- Subcomponents for Phase 13 Physics ---
+
+const ScrollLinkedLine = () => {
+  const scrollProgress = useScrollProgress();
+  return (
+    <div 
+      className="absolute left-0 top-0 w-px bg-accent origin-top will-change-transform z-0"
+      style={{ 
+        transform: `scaleY(${scrollProgress})`, 
+        height: '100%',
+        transition: 'transform 0.1s linear' // small interpolation for sub-frame smoothness
+      }}
+    />
+  );
+};
+
+const ScrollReveal = ({ children, index }: { children: React.ReactNode, index: number }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -50px 0px" } // trigger slightly before it comes fully into view
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(24px)",
+        transition: "opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+        transitionDelay: `${Math.min(index * 50, 300)}ms` // Cap initial load stagger delay
+      }}
+      className="will-change-[opacity,transform] z-10"
+    >
+      {children}
     </div>
   );
 };

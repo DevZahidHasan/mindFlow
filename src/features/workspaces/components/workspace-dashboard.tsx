@@ -171,7 +171,9 @@ export const WorkspaceDashboard: React.FC<WorkspaceDashboardProps> = ({
       displayName={displayName}
       activeTab={activeTab}
     >
-      {renderTabContent()}
+      <div key={activeTab} className="w-full h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] fill-mode-both">
+        {renderTabContent()}
+      </div>
     </AppShell>
   );
 };

@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { WorkspaceSwitcher, WorkspaceItem } from "./workspace-switcher";
+import { Magnetic } from "@/features/ui/magnetic";
 
 interface SidebarProps {
   workspaceId: string;
@@ -36,20 +37,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Nav List */}
       <nav className="flex-1 flex flex-col gap-1.5 mt-4">
         <div className="flex flex-col gap-2 mb-6">
-          <Link
-            href={`/w/${workspaceId}/import`}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20 transition-all duration-150 shadow-sm"
-          >
-            <span className="text-xs">＋</span>
-            Import Knowledge
-          </Link>
-          <Link
-            href={`/w/${workspaceId}/notes/new`}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-surface text-foreground/80 hover:bg-surface-hover border border-border/50 hover:border-border transition-all duration-150 shadow-sm"
-          >
-            <span className="text-xs font-mono">✎</span>
-            Write Manual Note
-          </Link>
+          <Magnetic intensity={0.15}>
+            <Link
+              href={`/w/${workspaceId}/import`}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20 transition-all duration-150 shadow-sm block w-full"
+            >
+              <span className="text-xs">＋</span>
+              Import Knowledge
+            </Link>
+          </Magnetic>
+          <Magnetic intensity={0.15}>
+            <Link
+              href={`/w/${workspaceId}/notes/new`}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-surface text-foreground/80 hover:bg-surface-hover border border-border/50 hover:border-border transition-all duration-150 shadow-sm block w-full"
+            >
+              <span className="text-xs font-mono">✎</span>
+              Write Manual Note
+            </Link>
+          </Magnetic>
         </div>
         
         <span className="text-[10px] font-mono text-muted uppercase tracking-widest mb-2 px-1">
@@ -58,20 +63,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
-            <Link
-              key={item.id}
-              href={`/w/${workspaceId}?tab=${item.id}`}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans transition-all duration-150 focus-visible:outline-2 focus-visible:outline-accent ${
-                isActive
-                  ? "bg-surface border border-border text-foreground font-semibold shadow-sm"
-                  : "text-muted hover:text-foreground hover:bg-surface/50 border border-transparent"
-              }`}
-            >
-              <span className={`text-xs ${isActive ? "text-accent animate-pulse" : "text-muted"}`}>
-                {item.icon}
-              </span>
-              {item.label}
-            </Link>
+            <Magnetic key={item.id} intensity={0.1}>
+              <Link
+                href={`/w/${workspaceId}?tab=${item.id}`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium transition-all duration-150 block w-full ${
+                  isActive
+                    ? "text-accent bg-accent/5 border border-accent/10 shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-surface-hover border border-transparent"
+                }`}
+              >
+                <span className={`text-xs ${isActive ? "text-accent animate-pulse" : "text-muted"}`}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            </Magnetic>
           );
         })}
       </nav>

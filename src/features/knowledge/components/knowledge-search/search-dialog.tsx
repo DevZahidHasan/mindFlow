@@ -41,8 +41,18 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia("(max-width: 768px)").matches);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   // Animation Springs
-  const openProgress = useSpring(open ? 1 : 0, SPRING_PRESETS.ui);
+  const openPreset = isMobile ? SPRING_PRESETS.micro : SPRING_PRESETS.cinematic;
+  const openProgress = useSpring(open ? 1 : 0, openPreset);
   const searchFocus = useSpring(query.length > 0 && session.messages.length === 0 ? 1 : 0, SPRING_PRESETS.editorial);
 
   // AI State Animation Mapping
@@ -64,7 +74,7 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
       : session.status === "INSIGHT"
       ? 1.0
       : 0,
-    SPRING_PRESETS.cinematic
+    openPreset
   );
 
   useEffect(() => {
@@ -309,15 +319,20 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
 
         {/* Ambient Quick Actions (when idle and no message history) */}
         {session.messages.length === 0 && !query.trim() && (
-          <div className="w-full max-w-2xl flex flex-wrap gap-2.5 justify-center py-4 animate-in fade-in duration-700">
-            {QUICK_ACTIONS.map(action => (
+          <div className="w-full max-w-2xl flex flex-wrap gap-2.5 justify-center py-4">
+            {QUICK_ACTIONS.map((action, i) => (
               <button
                 key={action.id}
                 onClick={() => {
                   setQuery(action.query);
                   inputRef.current?.focus();
                 }}
-                className="px-3.5 py-2 rounded-xl bg-surface/60 hover:bg-surface border border-border/60 hover:border-accent/40 text-xs font-mono text-muted hover:text-foreground transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-surface/60 hover:bg-surface border border-border/60 hover:border-accent/40 text-xs font-mono text-muted hover:text-foreground transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer flex items-center gap-1.5 shadow-sm"
+                style={{
+                  opacity: open ? 1 : 0,
+                  transform: open ? "translateY(0) scale(1)" : "translateY(16px) scale(0.95)",
+                  transitionDelay: `${i * 60}ms`,
+                }}
               >
                 <span>{action.label}</span>
               </button>
