@@ -35,29 +35,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Nav List */}
-      <nav className="flex-1 flex flex-col gap-1.5 mt-4">
+      {/* Nav List */}
+      <nav aria-label="Sidebar Navigation" className="flex-1 flex flex-col gap-1.5 mt-4">
         <div className="flex flex-col gap-2 mb-6">
           <Magnetic intensity={0.15}>
             <Link
               href={`/w/${workspaceId}/import`}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20 transition-all duration-150 shadow-sm block w-full"
+              aria-label="Import Knowledge"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20 transition-all duration-150 shadow-sm block w-full focus-visible:outline-2 focus-visible:outline-accent"
             >
-              <span className="text-xs">＋</span>
+              <span aria-hidden="true" className="text-xs">＋</span>
               Import Knowledge
             </Link>
           </Magnetic>
           <Magnetic intensity={0.15}>
             <Link
               href={`/w/${workspaceId}/notes/new`}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-surface text-foreground/80 hover:bg-surface-hover border border-border/50 hover:border-border transition-all duration-150 shadow-sm block w-full"
+              aria-label="Write Manual Note"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium bg-surface text-foreground/80 hover:bg-surface-hover border border-border/50 hover:border-border transition-all duration-150 shadow-sm block w-full focus-visible:outline-2 focus-visible:outline-accent"
             >
-              <span className="text-xs font-mono">✎</span>
+              <span aria-hidden="true" className="text-xs font-mono">✎</span>
               Write Manual Note
             </Link>
           </Magnetic>
         </div>
         
-        <span className="text-[10px] font-mono text-muted uppercase tracking-widest mb-2 px-1">
+        <span id="views-heading" className="text-[10px] font-mono text-muted uppercase tracking-widest mb-2 px-1">
           Views
         </span>
         {navItems.map((item) => {
@@ -66,13 +69,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Magnetic key={item.id} intensity={0.1}>
               <Link
                 href={`/w/${workspaceId}?tab=${item.id}`}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium transition-all duration-150 block w-full ${
+                aria-current={isActive ? "page" : undefined}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-sans font-medium transition-all duration-150 block w-full focus-visible:outline-2 focus-visible:outline-accent ${
                   isActive
                     ? "text-accent bg-accent/5 border border-accent/10 shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-surface-hover border border-transparent"
                 }`}
               >
-                <span className={`text-xs ${isActive ? "text-accent animate-pulse" : "text-muted"}`}>
+                <span aria-hidden="true" className={`text-xs ${isActive ? "text-accent animate-pulse" : "text-muted"}`}>
                   {item.icon}
                 </span>
                 {item.label}

@@ -588,7 +588,7 @@ The UI should preserve the visual/spatial identity of MINDSPACE.
 
 # Phase 13 — Advanced UX, Motion & Micro-Interactions
 
-**Status:** PLANNED
+**Status:** COMPLETE
 
 ### Scope
 
@@ -627,11 +627,11 @@ Also implement:
 
 # Phase 14 — Mobile-First & Responsive Excellence
 
-**Status:** PLANNED
+**Status:** COMPLETE
 
 ### Scope
 
-Perform a dedicated mobile and responsive engineering phase.
+Dedicated mobile engineering pass.
 
 ### Includes
 
@@ -662,15 +662,13 @@ Mobile must feel intentionally designed, not like a desktop layout squeezed onto
 
 # Phase 15 — Accessibility, Security, Performance & Production Audit
 
-**Status:** PLANNED
+**Status:** COMPLETE
 
 ### Scope
 
-Perform a full production-grade engineering audit.
+Final pass over accessibility standards, database security rules, component performance, and production readiness.
 
 ### Accessibility
-
-* WCAG-oriented review
 * keyboard navigation
 * focus management
 * screen readers
@@ -760,9 +758,9 @@ Add a concise summary table near the top of `PROJECT_PROGRESS.md`:
 | 10    | AI Search & Intelligence Engine                         | COMPLETE |
 | 11    | AI Assistant & Command Center                           | COMPLETE |
 | 12    | Projects, Collections & Timeline                        | COMPLETE |
-| 13    | Advanced UX, Motion & Micro-Interactions                | PLANNED  |
-| 14    | Mobile-First & Responsive Excellence                    | PLANNED  |
-| 15    | Accessibility, Security, Performance & Production Audit | PLANNED  |
+| 13    | Advanced UX, Motion & Micro-Interactions                | COMPLETE |
+| 14    | Mobile-First & Responsive Excellence                    | COMPLETE |
+| 15    | Accessibility, Security, Performance & Production Audit | COMPLETE |
 | 16    | Testing, Deployment & Production Launch                 | PLANNED  |
 
 ---
@@ -776,7 +774,7 @@ At the bottom of the document, maintain:
 
 ### Current Phase
 
-Phase 12 — Projects, Collections & Timeline
+Phase 15 — Accessibility, Security, Performance & Production Audit
 
 ### Status
 
@@ -784,7 +782,7 @@ COMPLETE
 
 ### Next Phase
 
-Phase 13 — Advanced UX, Motion & Micro-Interactions
+Phase 16 — Testing, Deployment & Production Launch
 
 ### Human Approval Required
 

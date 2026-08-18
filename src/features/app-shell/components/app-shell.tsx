@@ -6,6 +6,7 @@ import { Topbar } from "./topbar";
 import { MobileNav } from "./mobile-nav";
 import { WorkspaceItem } from "./workspace-switcher";
 import { SearchDialog } from "@/features/knowledge/components/knowledge-search/search-dialog";
+import { MobileMenuSheet } from "./mobile-menu-sheet";
 
 import { AiSessionProvider } from "@/features/ai/context/ai-session-context";
 
@@ -29,6 +30,7 @@ const AppShellInner: React.FC<AppShellProps> = ({
   activeTab = "universe",
 }) => {
   const [commandOpen, setCommandOpen] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   // Keyboard shortcut listener for ⌘K / Ctrl+K
   React.useEffect(() => {
@@ -54,6 +56,7 @@ const AppShellInner: React.FC<AppShellProps> = ({
         userEmail={userEmail}
         displayName={displayName}
         onTriggerCommand={handleTriggerCommand}
+        onTriggerMenu={() => setMenuOpen(true)}
       />
 
       {/* Main workspace layout grid */}
@@ -108,6 +111,15 @@ const AppShellInner: React.FC<AppShellProps> = ({
         open={commandOpen} 
         onOpenChange={setCommandOpen}
         workspaceId={workspaceId}
+      />
+
+      {/* Mobile Actions Sheet */}
+      <MobileMenuSheet
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        workspaceId={workspaceId}
+        currentWorkspace={currentWorkspace}
+        workspaces={workspaces}
       />
     </div>
   );

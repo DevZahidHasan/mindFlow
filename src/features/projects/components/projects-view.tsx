@@ -126,51 +126,14 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project, index) => (
-            <div
+            <ProjectCard
               key={project.id}
-              className="group p-6 rounded-2xl bg-surface/70 hover:bg-surface border border-border/60 hover:border-accent/60 transition-all duration-500 flex flex-col justify-between gap-6 shadow-sm hover:shadow-xl hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4"
-              style={{ animationFillMode: "both", animationDelay: `${index * 75}ms` }}
-            >
-              <div 
-                className="flex flex-col gap-3 cursor-pointer"
-                onClick={() => handleProjectFilter(project.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-accent font-semibold px-2 py-0.5 rounded bg-accent/10 border border-accent/20">
-                    {project.status.toUpperCase()}
-                  </span>
-                  <span className="text-xs font-mono text-muted group-hover:text-accent transition-colors">
-                    Filter Universe ↗
-                  </span>
-                </div>
-
-                <h3 className="text-xl font-display font-medium text-foreground group-hover:text-accent transition-colors">
-                  {project.name}
-                </h3>
-
-                {project.description && (
-                  <p className="text-xs font-sans text-muted leading-relaxed line-clamp-3">
-                    {project.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
-                <div 
-                  className="flex items-center justify-between text-[11px] font-mono text-muted cursor-pointer"
-                  onClick={() => handleProjectFilter(project.id)}
-                >
-                  <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
-                  <span className="text-accent font-semibold group-hover:translate-x-1 transition-transform">Open Lens →</span>
-                </div>
-
-                {/* Node Assignment Control */}
-                <div className="mt-2 pt-2 border-t border-border/20 flex flex-col gap-1.5">
-                  <span className="text-[9px] font-mono text-muted uppercase tracking-wider">Assign Note to Project:</span>
-                  <AssignNoteControl workspaceId={workspaceId} projectId={project.id} nodes={nodes} />
-                </div>
-              </div>
-            </div>
+              project={project}
+              index={index}
+              workspaceId={workspaceId}
+              nodes={nodes}
+              onFilter={handleProjectFilter}
+            />
           ))}
         </div>
       )}
@@ -178,19 +141,274 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
   );
 };
 
-const AssignNoteControl = ({ workspaceId, projectId, nodes }: { workspaceId: string, projectId: string, nodes: KnowledgeNode[] }) => {
+interface ProjectCardProps {
+  project: Project;
+  index: number;
+  workspaceId: string;
+  nodes: KnowledgeNode[];
+  onFilter: (projectId: string) => void;
+}
+
+const ProjectCard: React.FC<ProjectCardProps> = ({
+  project,
+  index,
+  workspaceId,
+  nodes,
+  onFilter,
+}) => {
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(project.name);
+  const [description, setDescription] = useState(project.description || "");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleStatusChange = async (newStatus: "active" | "completed" | "archived") => {
+    setIsUpdating(true);
+    const { updateProjectAction } = await import("../actions/project-actions");
+    await updateProjectAction(workspaceId, {
+      id: project.id,
+      workspace_id: workspaceId,
+      status: newStatus,
+    });
+    setIsUpdating(false);
+    router.refresh();
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || isUpdating) return;
+
+    setIsUpdating(true);
+    const { updateProjectAction } = await import("../actions/project-actions");
+    const res = await updateProjectAction(workspaceId, {
+      id: project.id,
+      workspace_id: workspaceId,
+      name: name.trim(),
+      description: description.trim() || null,
+    });
+    setIsUpdating(false);
+
+    if (res.success) {
+      setIsEditing(false);
+      router.refresh();
+    }
+  };
+
+  return (
+    <div
+      className="group p-6 rounded-2xl bg-surface/70 hover:bg-surface border border-border/60 hover:border-accent/60 transition-all duration-500 flex flex-col justify-between gap-6 shadow-sm hover:shadow-xl hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4 relative"
+      style={{ animationFillMode: "both", animationDelay: `${index * 75}ms` }}
+    >
+      {isEditing ? (
+        <form onSubmit={handleSaveEdit} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Project Name"
+            className="w-full px-3 py-1.5 rounded-lg bg-surface-subtle border border-accent/40 text-sm font-sans font-medium text-foreground outline-none"
+            required
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description..."
+            rows={2}
+            className="w-full px-3 py-1.5 rounded-lg bg-surface-subtle border border-border/40 text-xs font-sans text-foreground outline-none resize-none"
+          />
+          <div className="flex items-center justify-end gap-2 mt-1">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-3 py-1 rounded text-xs font-mono text-muted hover:text-foreground cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="px-3 py-1 rounded bg-accent text-black font-semibold text-xs font-sans hover:bg-accent/90 cursor-pointer disabled:opacity-50"
+            >
+              {isUpdating ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <StatusDropdown
+              status={project.status}
+              disabled={isUpdating}
+              onChange={handleStatusChange}
+            />
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="text-[10px] font-mono text-muted hover:text-accent transition-colors cursor-pointer"
+                title="Edit Project"
+              >
+                ✎ Edit
+              </button>
+              <span 
+                onClick={() => onFilter(project.id)} 
+                className="text-xs font-mono text-muted group-hover:text-accent transition-colors cursor-pointer"
+              >
+                Filter Universe ↗
+              </span>
+            </div>
+          </div>
+
+          <div onClick={() => onFilter(project.id)} className="cursor-pointer">
+            <h3 className="text-xl font-display font-medium text-foreground group-hover:text-accent transition-colors">
+              {project.name}
+            </h3>
+
+            {project.description && (
+              <p className="text-xs font-sans text-muted leading-relaxed line-clamp-3 mt-1">
+                {project.description}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
+        <div 
+          className="flex items-center justify-between text-[11px] font-mono text-muted cursor-pointer"
+          onClick={() => onFilter(project.id)}
+        >
+          <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+          <span className="text-accent font-semibold group-hover:translate-x-1 transition-transform">Open Lens →</span>
+        </div>
+
+        {/* Node Assignment Control */}
+        <div className="mt-2 pt-2 border-t border-border/20 flex flex-col gap-1.5">
+          <span className="text-[9px] font-mono text-muted uppercase tracking-wider">Assign Note to Project:</span>
+          <AssignNoteControl workspaceId={workspaceId} projectId={project.id} nodes={nodes} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Custom Dark Theme Status Dropdown ---
+
+interface StatusDropdownProps {
+  status: "active" | "completed" | "archived";
+  disabled?: boolean;
+  onChange: (status: "active" | "completed" | "archived") => void;
+}
+
+const StatusDropdown: React.FC<StatusDropdownProps> = ({ status, disabled, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const options: Array<{ value: "active" | "completed" | "archived"; label: string; color: string }> = [
+    { value: "active", label: "Active", color: "text-accent" },
+    { value: "completed", label: "Completed", color: "text-emerald-400" },
+    { value: "archived", label: "Archived", color: "text-muted" },
+  ];
+
+  const currentOption = options.find((o) => o.value === status) || options[0];
+
+  const getBadgeStyle = (s: string) => {
+    switch (s) {
+      case "completed":
+        return "text-emerald-400 bg-emerald-950/50 border-emerald-800/50 hover:border-emerald-500/60";
+      case "archived":
+        return "text-muted bg-surface/90 border-border/70 hover:border-border";
+      default:
+        return "text-accent bg-accent/10 border-accent/30 hover:border-accent/60";
+    }
+  };
+
+  return (
+    <div className="relative inline-block text-left z-20" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.15em] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50 ${getBadgeStyle(
+          status
+        )}`}
+      >
+        <span>{currentOption.label}</span>
+        <span className={`text-[8px] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
+          ▾
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 mt-1.5 w-36 rounded-xl bg-surface border border-border/80 shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 text-xs font-mono uppercase tracking-wider text-left transition-colors cursor-pointer ${
+                status === option.value
+                  ? "bg-accent/15 text-foreground font-semibold"
+                  : "text-muted hover:text-foreground hover:bg-surface-subtle"
+              }`}
+            >
+              <span className={option.color}>{option.label}</span>
+              {status === option.value && <span className="text-accent text-xs">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- Custom Dark Theme Assign Note Control ---
+
+const AssignNoteControl = ({
+  workspaceId,
+  projectId,
+  nodes,
+}: {
+  workspaceId: string;
+  projectId: string;
+  nodes: KnowledgeNode[];
+}) => {
   const router = useRouter();
   const [status, setStatus] = useState<"IDLE" | "ASSIGNING" | "SUCCESS">("IDLE");
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    e.stopPropagation();
-    const nodeId = e.target.value;
-    if (!nodeId) return;
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
+  const handleSelectNote = async (nodeId: string) => {
+    setIsOpen(false);
     setStatus("ASSIGNING");
     const { assignNodeToProjectAction } = await import("../actions/project-actions");
     const res = await assignNodeToProjectAction(workspaceId, projectId, nodeId);
-    
+
     if (res.success) {
       setStatus("SUCCESS");
       setTimeout(() => {
@@ -204,27 +422,47 @@ const AssignNoteControl = ({ workspaceId, projectId, nodes }: { workspaceId: str
 
   if (status === "SUCCESS") {
     return (
-      <div className="w-full px-2.5 py-1.5 rounded-lg bg-emerald-950/30 border border-emerald-800/40 text-xs font-sans text-emerald-400 flex items-center gap-2">
-        <span>✓</span> Note successfully assigned!
+      <div className="w-full px-3 py-2 rounded-xl bg-emerald-950/40 border border-emerald-800/50 text-xs font-sans text-emerald-400 flex items-center gap-2 animate-in fade-in duration-300">
+        <span>✓</span> Note assigned to project!
       </div>
     );
   }
 
   return (
-    <select
-      className="w-full px-2.5 py-1.5 rounded-lg bg-surface-subtle border border-border/50 text-xs font-sans text-foreground outline-none cursor-pointer focus:border-accent disabled:opacity-50"
-      onClick={e => e.stopPropagation()}
-      onMouseDown={e => e.stopPropagation()}
-      onChange={handleChange}
-      value=""
-      disabled={status === "ASSIGNING"}
-    >
-      <option value="" disabled>
-        {status === "ASSIGNING" ? "Assigning..." : "+ Select Note to Assign..."}
-      </option>
-      {nodes.map(n => (
-        <option key={n.id} value={n.id}>{n.title}</option>
-      ))}
-    </select>
+    <div className="relative w-full z-10" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={status === "ASSIGNING"}
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3 py-2 rounded-xl bg-surface-subtle border border-border/60 hover:border-accent/40 text-xs font-sans text-muted hover:text-foreground flex items-center justify-between transition-all cursor-pointer disabled:opacity-50"
+      >
+        <span>{status === "ASSIGNING" ? "Assigning note..." : "+ Select Note to Assign..."}</span>
+        <span className={`text-[10px] text-muted transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
+          ▾
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 mt-1.5 max-h-48 overflow-y-auto no-scrollbar rounded-xl bg-surface border border-border/80 shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+          {nodes.length === 0 ? (
+            <div className="px-3 py-2 text-xs font-sans text-muted text-center">
+              No notes available
+            </div>
+          ) : (
+            nodes.map((node) => (
+              <button
+                key={node.id}
+                type="button"
+                onClick={() => handleSelectNote(node.id)}
+                className="w-full px-3 py-2 text-xs font-sans text-foreground text-left hover:bg-accent/15 hover:text-accent transition-colors flex items-center justify-between cursor-pointer"
+              >
+                <span className="truncate">{node.title}</span>
+                <span className="text-[9px] font-mono text-muted uppercase ml-2">Note</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   );
 };

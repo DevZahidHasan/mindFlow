@@ -223,6 +223,9 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="command-center-title"
       className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
       style={{ pointerEvents: open ? "auto" : "none" }}
     >
@@ -244,7 +247,7 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
 
       {/* Main Command Center Container */}
       <div
-        className="w-full h-full max-w-4xl px-4 md:px-8 flex flex-col items-center pt-[10vh] pb-12 relative z-10 overflow-y-auto no-scrollbar"
+        className="w-full h-full max-w-4xl px-4 md:px-8 flex flex-col items-center pt-[2vh] md:pt-[10vh] pb-12 relative z-10 overflow-y-auto no-scrollbar"
         style={{
           opacity: openProgress,
         }}
@@ -252,8 +255,8 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
         {/* Top Header Mode Indicators */}
         <div className="flex items-center justify-between w-full max-w-2xl mb-6">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono uppercase tracking-[0.25em] text-accent font-semibold flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <span id="command-center-title" className="text-xs font-mono uppercase tracking-[0.25em] text-accent font-semibold flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
               MINDSPACE AI Command Center
             </span>
           </div>
@@ -267,21 +270,22 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
                 Clear History
               </button>
             )}
-            <kbd className="text-[10px] font-mono text-muted/60 bg-surface px-2 py-0.5 rounded border border-border/40">
+            <kbd aria-label="Press Escape to close" className="text-[10px] font-mono text-muted/60 bg-surface px-2 py-0.5 rounded border border-border/40">
               ESC
             </kbd>
           </div>
         </div>
 
         {/* Search & Prompt Input Cockpit */}
-        <div className="w-full max-w-2xl relative mb-6">
+        <div className="w-full max-w-2xl relative mb-6 shrink-0">
           <div className="w-full p-2 bg-surface/90 backdrop-blur-xl border border-border/80 rounded-2xl shadow-2xl focus-within:border-accent/80 transition-all flex items-center gap-3">
-            <span className="text-accent text-lg pl-3 font-mono">✦</span>
+            <span aria-hidden="true" className="text-accent text-lg pl-3 font-mono">✦</span>
             <input
               ref={inputRef}
               value={query}
               onChange={e => setQuery(e.target.value)}
               disabled={isAiActive}
+              aria-label="Search or enter AI command"
               placeholder={
                 session.messages.length > 0
                   ? "Ask follow-up question or command..."
@@ -319,7 +323,7 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
 
         {/* Ambient Quick Actions (when idle and no message history) */}
         {session.messages.length === 0 && !query.trim() && (
-          <div className="w-full max-w-2xl flex flex-wrap gap-2.5 justify-center py-4">
+          <div className="w-full max-w-2xl flex flex-nowrap md:flex-wrap gap-2.5 justify-start md:justify-center py-4 overflow-x-auto no-scrollbar pb-6 px-1 shrink-0">
             {QUICK_ACTIONS.map((action, i) => (
               <button
                 key={action.id}
@@ -327,7 +331,7 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange, 
                   setQuery(action.query);
                   inputRef.current?.focus();
                 }}
-                className="px-3.5 py-2 rounded-xl bg-surface/60 hover:bg-surface border border-border/60 hover:border-accent/40 text-xs font-mono text-muted hover:text-foreground transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer flex items-center gap-1.5 shadow-sm"
+                className="shrink-0 px-3.5 py-2 rounded-xl bg-surface/60 hover:bg-surface border border-border/60 hover:border-accent/40 text-xs font-mono text-muted hover:text-foreground transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer flex items-center gap-1.5 shadow-sm"
                 style={{
                   opacity: open ? 1 : 0,
                   transform: open ? "translateY(0) scale(1)" : "translateY(16px) scale(0.95)",

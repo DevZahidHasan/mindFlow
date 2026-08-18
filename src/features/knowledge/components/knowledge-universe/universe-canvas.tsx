@@ -23,9 +23,14 @@ export const UniverseCanvas: React.FC<UniverseProps> = (props) => {
           enableRotate={true}
           autoRotate={!props.focusedNodeId}
           autoRotateSpeed={0.5}
+          enableDamping={true}
           dampingFactor={0.05} // Smooth physical inertia
           maxDistance={3000}
           minDistance={100}
+          touches={{
+            ONE: 1, // TOUCH.ROTATE
+            TWO: 2, // TOUCH.DOLLY_PAN
+          }}
         />
 
         <color attach="background" args={["#030303"]} />
@@ -40,7 +45,6 @@ export const UniverseCanvas: React.FC<UniverseProps> = (props) => {
             <Bloom 
               luminanceThreshold={0.2} 
               luminanceSmoothing={0.9} 
-              height={300}
               intensity={1.5}
             />
             <Noise opacity={0.02} />

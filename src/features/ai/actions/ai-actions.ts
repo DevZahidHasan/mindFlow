@@ -5,6 +5,7 @@ import { RAGService } from "../services/rag.service";
 import { RelationshipService } from "../services/relationship.service";
 import { AppErrorClass, normalizeError } from "@/lib/errors";
 import { RAGResponse, SemanticConnection } from "@/lib/ai/types";
+import { aiRateLimiter } from "@/lib/rate-limit";
 
 export async function askAiAction(workspaceId: string, query: string): Promise<{ success: boolean; data?: RAGResponse; error?: any }> {
   try {
@@ -13,6 +14,10 @@ export async function askAiAction(workspaceId: string, query: string): Promise<{
 
     if (!user) {
       throw new AppErrorClass("Unauthorized", "UNAUTHORIZED", 401);
+    }
+
+    if (!aiRateLimiter.check(user.id)) {
+      throw new AppErrorClass("Rate limit exceeded. Try again later.", "RATE_LIMIT", 429);
     }
 
     if (!workspaceId || !query) {
@@ -37,6 +42,10 @@ export async function getRelationshipSuggestionsAction(
 
     if (!user) {
       throw new AppErrorClass("Unauthorized", "UNAUTHORIZED", 401);
+    }
+
+    if (!aiRateLimiter.check(user.id)) {
+      throw new AppErrorClass("Rate limit exceeded. Try again later.", "RATE_LIMIT", 429);
     }
 
     const connections = await RelationshipService.discoverRelationships(workspaceId, nodeId, content);

@@ -47,3 +47,17 @@ export async function removeNodeFromProjectAction(workspaceId: string, projectId
     return { success: false, error: normalizeError(err) };
   }
 }
+
+export async function updateProjectAction(workspaceId: string, input: UpdateProjectInput) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new AppErrorClass("Unauthorized", "UNAUTHORIZED", 401);
+
+    const project = await ProjectService.updateProject(input);
+    revalidatePath(`/w/${workspaceId}`);
+    return { success: true, data: project };
+  } catch (err) {
+    return { success: false, error: normalizeError(err) };
+  }
+}
